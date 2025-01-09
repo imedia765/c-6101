@@ -10,6 +10,7 @@ export const QuickPushButton = ({ isProcessing }: { isProcessing: boolean }) => 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
+        console.log('Error: No active session');
         throw new Error('No active session');
       }
 
@@ -32,13 +33,16 @@ export const QuickPushButton = ({ isProcessing }: { isProcessing: boolean }) => 
         throw logError;
       }
 
+      console.log('Created operation log:', logData);
+
       // Call the git operations function
+      console.log('Calling git operations function...');
       const { data, error } = await supabase.functions.invoke('git-operations', {
         body: { 
           branch: 'main',
           operation: 'push',
           logId: logData?.id,
-          validateOnly: false // Add this flag to ensure full push operation
+          validateOnly: false
         }
       });
 
@@ -58,13 +62,14 @@ export const QuickPushButton = ({ isProcessing }: { isProcessing: boolean }) => 
         throw error;
       }
 
+      console.log('Git operations response:', data);
+
       // Verify the push was actually completed
       if (!data?.pushCompleted) {
+        console.error('Push not completed:', data);
         throw new Error('Push operation did not complete successfully');
       }
 
-      console.log('Quick push response:', data);
-      
       // Update log with success
       await supabase
         .from('git_operations_logs')
@@ -74,6 +79,8 @@ export const QuickPushButton = ({ isProcessing }: { isProcessing: boolean }) => 
         })
         .eq('id', logData?.id);
 
+      console.log('Push operation completed successfully');
+      
       toast({
         title: "Success",
         description: "Successfully pushed to master repository",

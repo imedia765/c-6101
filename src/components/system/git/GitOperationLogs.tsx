@@ -26,7 +26,9 @@ export const GitOperationLogs = ({ logs }: GitOperationLogsProps) => {
           {logs.map((log) => (
             <div
               key={log.id}
-              className="text-sm p-2 rounded bg-dashboard-card/50 border border-white/10"
+              className={`text-sm p-2 rounded ${
+                log.status === 'failed' ? 'bg-red-500/10' : 'bg-dashboard-card/50'
+              } border border-white/10`}
             >
               <div className="flex justify-between text-white">
                 <span>{log.operation_type}</span>
