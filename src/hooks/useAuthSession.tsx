@@ -10,7 +10,7 @@ export function useAuthSession() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const handleSignOut = async () => {
+  const handleSignOut = async (skipStorageClear = false) => {
     try {
       console.log('Starting sign out process...');
       setLoading(true);
@@ -19,9 +19,11 @@ export function useAuthSession() {
       await queryClient.resetQueries();
       await queryClient.clear();
       
-      // Clear local storage and session storage
-      localStorage.clear();
-      sessionStorage.clear();
+      // Only clear storage if not skipping (during login flow)
+      if (!skipStorageClear) {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
       
       // Sign out from Supabase
       const { error } = await supabase.auth.signOut();
@@ -145,7 +147,9 @@ export function useAuthSession() {
       
       if (event === 'SIGNED_OUT') {
         console.log('User signed out');
-        await handleSignOut();
+        // Skip storage clear if this is part of login flow
+        const isLoginFlow = window.location.pathname === '/login';
+        await handleSignOut(isLoginFlow);
         return;
       } else if (event === 'TOKEN_REFRESHED') {
         if (!currentSession) {
