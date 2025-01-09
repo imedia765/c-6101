@@ -31,7 +31,12 @@ export function useAuthSession() {
       setSession(null);
       
       // Force a clean page reload to clear any remaining state
-      window.location.replace('/login');
+      try {
+        window.location.replace('/login');
+      } catch (error) {
+        console.error('Redirect failed, forcing reload:', error);
+        window.location.reload();
+      }
     } catch (error: any) {
       console.error('Error during sign out:', error);
       toast({
