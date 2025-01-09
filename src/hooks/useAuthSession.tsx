@@ -30,9 +30,19 @@ export function useAuthSession() {
       console.log('Sign out successful');
       setSession(null);
       
+      // Add a small delay to ensure state is fully cleared
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Force a clean page reload to clear any remaining state
       try {
-        window.location.replace('/login');
+        // Check if login page exists before redirect
+        const response = await fetch('/login');
+        if (response.ok) {
+          window.location.replace('/login');
+        } else {
+          console.error('Login page not found, forcing reload');
+          window.location.reload();
+        }
       } catch (error) {
         console.error('Redirect failed, forcing reload:', error);
         window.location.reload();
