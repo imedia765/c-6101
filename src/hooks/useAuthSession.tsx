@@ -93,10 +93,18 @@ export function useAuthSession() {
   useEffect(() => {
     let mounted = true;
 
+    console.log('Initializing auth session...');
+    
     const initializeSession = async () => {
       try {
         setLoading(true);
+        console.log('Fetching current session...');
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        console.log('Session fetch result:', {
+          session: currentSession ? 'exists' : 'null',
+          error: error ? error.message : 'none'
+        });
         
         if (error) {
           await handleAuthError(error);
@@ -122,9 +130,18 @@ export function useAuthSession() {
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      if (!mounted) return;
+      if (!mounted) {
+        console.log('Auth state change ignored - component unmounted');
+        return;
+      }
 
-      console.log('Auth state changed:', event, currentSession?.user?.id);
+      console.log('Auth state changed:', {
+        event,
+        hasSession: !!currentSession,
+        userId: currentSession?.user?.id,
+        accessToken: currentSession?.access_token ? 'exists' : 'none',
+        refreshToken: currentSession?.refresh_token ? 'exists' : 'none'
+      });
       
       if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
         if (!currentSession) {
