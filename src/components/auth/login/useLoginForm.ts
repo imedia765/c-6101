@@ -15,14 +15,14 @@ export const useLoginForm = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (loading || !memberNumber.trim()) return;
     
     try {
       setLoading(true);
       const isMobile = window.innerWidth <= 768;
       console.log('Starting login process on device type:', isMobile ? 'mobile' : 'desktop');
 
-      await clearAuthState();
+      // Skip clearing auth state on login attempt
       const member = await verifyMember(memberNumber);
       const { email, password } = getAuthCredentials(memberNumber);
       
@@ -50,7 +50,6 @@ export const useLoginForm = () => {
 
         if (signUpError) {
           console.error('Signup error:', signUpError);
-          setLoading(false);
           throw signUpError;
         }
 
@@ -68,12 +67,10 @@ export const useLoginForm = () => {
 
           if (finalSignInError) {
             console.error('Final sign in error:', finalSignInError);
-            setLoading(false);
             throw finalSignInError;
           }
 
           if (!finalSignInData?.session) {
-            setLoading(false);
             throw new Error('Failed to establish session after signup');
           }
         }
@@ -91,13 +88,11 @@ export const useLoginForm = () => {
       
       if (sessionError) {
         console.error('Session verification error:', sessionError);
-        setLoading(false);
         throw sessionError;
       }
 
       if (!session) {
         console.error('No session established');
-        setLoading(false);
         throw new Error('Failed to establish session');
       }
 
@@ -117,8 +112,6 @@ export const useLoginForm = () => {
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      setLoading(false);
-      await clearAuthState();
       
       let errorMessage = 'An unexpected error occurred';
       
@@ -137,6 +130,8 @@ export const useLoginForm = () => {
         description: errorMessage,
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
