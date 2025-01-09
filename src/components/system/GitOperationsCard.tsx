@@ -12,6 +12,7 @@ import { GitOperationLogs } from './git/GitOperationLogs';
 import { QuickPushButton } from './git/QuickPushButton';
 import { AddRepositoryDialog } from './git/AddRepositoryDialog';
 import { useGitOperations } from './git/useGitOperations';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const GitOperationsCard = () => {
   const { toast } = useToast();
@@ -30,6 +31,40 @@ const GitOperationsCard = () => {
   } = useGitOperations();
 
   const [showTokenDialog, setShowTokenDialog] = useState(false);
+  const [realtimeLogs, setRealtimeLogs] = useState<string[]>([]);
+
+  // Add log to realtime logs
+  const addLog = (message: string) => {
+    setRealtimeLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
+  };
+
+  // Subscribe to realtime updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('git-logs')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'git_operations_logs'
+        },
+        (payload) => {
+          const { new: newLog } = payload;
+          if (newLog) {
+            addLog(`${newLog.operation_type}: ${newLog.message}`);
+            if (newLog.error_details) {
+              addLog(`Error: ${newLog.error_details}`);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleTokenUpdate = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -37,22 +72,26 @@ const GitOperationsCard = () => {
     const token = formData.get('github_token') as string;
 
     try {
+      addLog('Updating GitHub token...');
       const { error } = await supabase.functions.invoke('update-github-token', {
         body: { token }
       });
 
       if (error) throw error;
 
+      addLog('GitHub token updated successfully');
       toast({
         title: "Success",
         description: "GitHub token updated successfully",
       });
       setShowTokenDialog(false);
     } catch (error: any) {
+      const errorMessage = error.message || "Failed to update GitHub token";
+      addLog(`Token update error: ${errorMessage}`);
       console.error('Token update error:', error);
       toast({
         title: "Update Failed",
-        description: error.message || "Failed to update GitHub token",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -121,7 +160,7 @@ const GitOperationsCard = () => {
           </AlertDescription>
         </Alert>
 
-        <QuickPushButton isProcessing={isProcessing} />
+        <QuickPushButton isProcessing={isProcessing} onLog={addLog} />
 
         <div className="space-y-4">
           <div className="grid gap-2">
@@ -155,6 +194,33 @@ const GitOperationsCard = () => {
         >
           Push to Selected Repository
         </Button>
+
+        <div className="mt-4">
+          <h3 className="text-sm font-medium text-white mb-2">Real-time Logs</h3>
+          <ScrollArea className="h-[200px] rounded-md border border-white/10 bg-black/20">
+            <div className="p-4 space-y-1 font-mono text-xs">
+              {realtimeLogs.map((log, index) => (
+                <div 
+                  key={index}
+                  className={`${
+                    log.includes('Error') 
+                      ? 'text-red-400'
+                      : log.includes('Success') || log.includes('completed')
+                      ? 'text-green-400'
+                      : 'text-dashboard-muted'
+                  }`}
+                >
+                  {log}
+                </div>
+              ))}
+              {realtimeLogs.length === 0 && (
+                <div className="text-dashboard-muted italic">
+                  Waiting for git operations...
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
 
         <GitOperationLogs logs={logs} />
 

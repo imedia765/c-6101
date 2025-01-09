@@ -3,18 +3,23 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-export const QuickPushButton = ({ isProcessing }: { isProcessing: boolean }) => {
+interface QuickPushButtonProps {
+  isProcessing: boolean;
+  onLog?: (message: string) => void;
+}
+
+export const QuickPushButton = ({ isProcessing, onLog }: QuickPushButtonProps) => {
   const { toast } = useToast();
 
   const handleQuickPush = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        console.log('Error: No active session');
+        onLog?.('Error: No active session');
         throw new Error('No active session');
       }
 
-      console.log('Starting quick push operation...');
+      onLog?.('Starting quick push operation...');
 
       // First, log the operation start
       const { data: logData, error: logError } = await supabase
@@ -29,14 +34,14 @@ export const QuickPushButton = ({ isProcessing }: { isProcessing: boolean }) => 
         .single();
 
       if (logError) {
-        console.error('Error creating operation log:', logError);
+        onLog?.(`Error creating operation log: ${logError.message}`);
         throw logError;
       }
 
-      console.log('Created operation log:', logData);
+      onLog?.('Created operation log');
 
       // Call the git operations function
-      console.log('Calling git operations function...');
+      onLog?.('Calling git operations function...');
       const { data, error } = await supabase.functions.invoke('git-operations', {
         body: { 
           branch: 'main',
@@ -47,7 +52,7 @@ export const QuickPushButton = ({ isProcessing }: { isProcessing: boolean }) => 
       });
 
       if (error) {
-        console.error('Quick push error:', error);
+        onLog?.(`Quick push error: ${error.message}`);
         
         // Update log with error details
         await supabase
@@ -62,12 +67,13 @@ export const QuickPushButton = ({ isProcessing }: { isProcessing: boolean }) => 
         throw error;
       }
 
-      console.log('Git operations response:', data);
+      onLog?.('Git operations response received');
 
       // Verify the push was actually completed
       if (!data?.pushCompleted) {
-        console.error('Push not completed:', data);
-        throw new Error('Push operation did not complete successfully');
+        const errorMessage = 'Push operation did not complete successfully';
+        onLog?.(`Error: ${errorMessage}`);
+        throw new Error(errorMessage);
       }
 
       // Update log with success
@@ -79,7 +85,7 @@ export const QuickPushButton = ({ isProcessing }: { isProcessing: boolean }) => 
         })
         .eq('id', logData?.id);
 
-      console.log('Push operation completed successfully');
+      onLog?.('Push operation completed successfully');
       
       toast({
         title: "Success",
@@ -87,6 +93,7 @@ export const QuickPushButton = ({ isProcessing }: { isProcessing: boolean }) => 
       });
 
     } catch (error: any) {
+      onLog?.(`Push error: ${error.message}`);
       console.error('Push error:', error);
       
       toast({
