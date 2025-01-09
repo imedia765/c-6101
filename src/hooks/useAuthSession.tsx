@@ -38,7 +38,14 @@ export function useAuthSession() {
         // Check if login page exists before redirect
         const response = await fetch('/login');
         if (response.ok) {
-          window.location.replace('/login');
+          // Validate origin before redirect
+          const currentOrigin = window.location.origin;
+          if (currentOrigin && currentOrigin !== 'null') {
+            window.location.replace('/login');
+          } else {
+            console.error('Invalid origin, forcing reload');
+            window.location.reload();
+          }
         } else {
           console.error('Login page not found, forcing reload');
           window.location.reload();
@@ -49,9 +56,13 @@ export function useAuthSession() {
       }
     } catch (error: any) {
       console.error('Error during sign out:', error);
+      let description = error.message;
+      if (error.message.includes('502')) {
+        description = "Failed to connect to the server. Please check your network connection and try again.";
+      }
       toast({
         title: "Error signing out",
-        description: error.message,
+        description,
         variant: "destructive",
       });
     } finally {
