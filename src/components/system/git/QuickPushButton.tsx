@@ -29,13 +29,16 @@ export const QuickPushButton = ({ isProcessing }: { isProcessing: boolean }) => 
 
       if (logError) {
         console.error('Error creating operation log:', logError);
+        throw logError;
       }
 
+      // Call the git operations function
       const { data, error } = await supabase.functions.invoke('git-operations', {
         body: { 
           branch: 'main',
           operation: 'push',
-          logId: logData?.id 
+          logId: logData?.id,
+          validateOnly: false // Add this flag to ensure full push operation
         }
       });
 
@@ -53,6 +56,11 @@ export const QuickPushButton = ({ isProcessing }: { isProcessing: boolean }) => 
           .eq('id', logData?.id);
 
         throw error;
+      }
+
+      // Verify the push was actually completed
+      if (!data?.pushCompleted) {
+        throw new Error('Push operation did not complete successfully');
       }
 
       console.log('Quick push response:', data);

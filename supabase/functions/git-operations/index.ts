@@ -50,7 +50,7 @@ serve(async (req) => {
     }
 
     // Get request data
-    const { branch = 'main', operation = 'push', logId } = await req.json()
+    const { branch = 'main', operation = 'push', logId, validateOnly = false } = await req.json()
     const repoOwner = 'imedia765'
     const repoName = 's-935078'
 
@@ -85,6 +85,50 @@ serve(async (req) => {
       throw new Error(`Repository access failed: ${errorData}`)
     }
 
+    // If only validating access, return here
+    if (validateOnly) {
+      // Update log with validation success
+      if (logId) {
+        await supabase
+          .from('git_operations_logs')
+          .update({
+            status: 'completed',
+            message: `Successfully verified access to ${repoOwner}/${repoName}:${branch}`
+          })
+          .eq('id', logId)
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          message: `Successfully verified access to ${repoOwner}/${repoName}:${branch}`
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Perform the actual push operation
+    const pushResponse = await fetch(
+      `https://api.github.com/repos/${repoOwner}/${repoName}/git/refs/heads/${branch}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `token ${githubToken}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Supabase-Edge-Function'
+        },
+        body: JSON.stringify({
+          force: true,
+          sha: 'HEAD'
+        })
+      }
+    )
+
+    if (!pushResponse.ok) {
+      const pushError = await pushResponse.text()
+      throw new Error(`Push operation failed: ${pushError}`)
+    }
+
     // Update log with success
     if (logId) {
       await supabase
@@ -99,6 +143,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
+        pushCompleted: true,
         message: `Successfully ${operation}ed to ${repoOwner}/${repoName}:${branch}`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
