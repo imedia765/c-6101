@@ -13,6 +13,8 @@ import { QuickPushButton } from './git/QuickPushButton';
 import { AddRepositoryDialog } from './git/AddRepositoryDialog';
 import { useGitOperations } from './git/useGitOperations';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { GitOperationLog, GitRealtimePayload } from '@/types/git';
 
 const GitOperationsCard = () => {
   const { toast } = useToast();
@@ -49,12 +51,11 @@ const GitOperationsCard = () => {
           schema: 'public',
           table: 'git_operations_logs'
         },
-        (payload) => {
-          const { new: newLog } = payload;
-          if (newLog) {
-            addLog(`${newLog.operation_type}: ${newLog.message}`);
-            if (newLog.error_details) {
-              addLog(`Error: ${newLog.error_details}`);
+        (payload: RealtimePostgresChangesPayload<GitOperationLog>) => {
+          if (payload.new) {
+            addLog(`${payload.new.operation_type}: ${payload.new.message}`);
+            if (payload.new.error_details) {
+              addLog(`Error: ${payload.new.error_details}`);
             }
           }
         }
