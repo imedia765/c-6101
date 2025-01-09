@@ -5,24 +5,42 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 20 14.3% 4.1%;
-    --radius: 1.2rem;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.75rem;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-dashboard-dark text-dashboard-text;
   }
 }
 
-.glass-effect {
-  @apply bg-white/5 backdrop-blur-lg border border-white/10;
+.glass-card {
+  @apply bg-dashboard-card bg-opacity-50 backdrop-blur-lg border border-dashboard-cardBorder rounded-xl transition-all duration-300 hover:border-dashboard-cardBorderHover hover:bg-dashboard-cardHover;
 }
 
-.hover-lift {
-  @apply transition-transform duration-300 hover:-translate-y-1;
+.dashboard-card {
+  @apply p-6 glass-card;
+}
+
+.metric-card {
+  @apply relative flex flex-col items-center justify-center p-8 dashboard-card;
 }

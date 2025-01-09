@@ -1,24 +1,25 @@
+import { Loader2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import ProtectedRoutes from "@/components/routing/ProtectedRoutes";
 
-const queryClient = new QueryClient();
+function App() {
+  const { session, loading } = useAuthSession();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-dashboard-dark">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <ProtectedRoutes session={session} />
       <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </>
+  );
+}
 
 export default App;
