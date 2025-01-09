@@ -143,9 +143,30 @@ export function useAuthSession() {
         refreshToken: currentSession?.refresh_token ? 'exists' : 'none'
       });
       
-      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+      if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
+        await handleSignOut();
+        return;
+      } else if (event === 'TOKEN_REFRESHED') {
         if (!currentSession) {
-          console.log('No session after token refresh, signing out');
+          console.log('Token refresh failed - no session');
+          toast({
+            title: "Session Expired",
+            description: "Please sign in again",
+            variant: "destructive",
+          });
+          await handleSignOut();
+          return;
+        }
+        
+        // Validate tokens
+        if (!currentSession.access_token || !currentSession.refresh_token) {
+          console.log('Invalid tokens after refresh');
+          toast({
+            title: "Session Error",
+            description: "Invalid session tokens",
+            variant: "destructive",
+          });
           await handleSignOut();
           return;
         }
