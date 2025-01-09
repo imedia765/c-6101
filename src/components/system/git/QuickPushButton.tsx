@@ -15,24 +15,65 @@ export const QuickPushButton = ({ isProcessing }: { isProcessing: boolean }) => 
 
       console.log('Starting quick push operation...');
 
+      // First, log the operation start
+      const { data: logData, error: logError } = await supabase
+        .from('git_operations_logs')
+        .insert({
+          operation_type: 'quick_push',
+          status: 'started',
+          message: 'Initiating quick push to master repository',
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (logError) {
+        console.error('Error creating operation log:', logError);
+      }
+
       const { data, error } = await supabase.functions.invoke('git-operations', {
-        body: { branch: 'main' }
+        body: { 
+          branch: 'main',
+          operation: 'push',
+          logId: logData?.id 
+        }
       });
 
       if (error) {
         console.error('Quick push error:', error);
+        
+        // Update log with error details
+        await supabase
+          .from('git_operations_logs')
+          .update({
+            status: 'failed',
+            message: 'Push operation failed',
+            error_details: error.message
+          })
+          .eq('id', logData?.id);
+
         throw error;
       }
 
       console.log('Quick push response:', data);
       
+      // Update log with success
+      await supabase
+        .from('git_operations_logs')
+        .update({
+          status: 'completed',
+          message: 'Successfully pushed to master repository'
+        })
+        .eq('id', logData?.id);
+
       toast({
         title: "Success",
         description: "Successfully pushed to master repository",
       });
 
     } catch (error: any) {
-      console.error('Quick push error:', error);
+      console.error('Push error:', error);
+      
       toast({
         title: "Push Failed",
         description: error.message || "Failed to push changes. Please try again.",

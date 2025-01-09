@@ -7,6 +7,7 @@ interface GitOperationLog {
   status: string;
   message: string;
   created_at: string;
+  error_details?: string;
 }
 
 interface GitOperationLogsProps {
@@ -38,6 +39,11 @@ export const GitOperationLogs = ({ logs }: GitOperationLogsProps) => {
                 </span>
               </div>
               <p className="text-dashboard-muted text-xs mt-1">{log.message}</p>
+              {log.error_details && (
+                <p className="text-red-400 text-xs mt-1 bg-red-500/10 p-2 rounded">
+                  Error: {log.error_details}
+                </p>
+              )}
               <p className="text-dashboard-muted text-xs mt-1">
                 {new Date(log.created_at).toLocaleString()}
               </p>
