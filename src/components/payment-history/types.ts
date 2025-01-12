@@ -6,4 +6,5 @@ export interface Payment {
   status: string;
   member_name?: string;
   member_number?: string;
+  ticket_number?: string;
 }

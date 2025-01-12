@@ -324,6 +324,7 @@ export type DatabaseTables = {
       payment_method: "bank_transfer" | "cash";
       payment_type: string;
       status: string | null;
+      ticket_number: string | null;
     };
     Insert: {
       amount: number;
@@ -338,6 +339,7 @@ export type DatabaseTables = {
       payment_method: "bank_transfer" | "cash";
       payment_type: string;
       status?: string | null;
+      ticket_number?: string | null;
     };
     Update: {
       amount?: number;
@@ -352,6 +354,7 @@ export type DatabaseTables = {
       payment_method?: "bank_transfer" | "cash";
       payment_type?: string;
       status?: string | null;
+      ticket_number?: string | null;
     };
     Relationships: [
       {
