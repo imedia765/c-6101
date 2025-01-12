@@ -16,7 +16,14 @@ interface PaymentRequest {
   amount: number;
   payment_type: string;
   status: string;
-  ticket_number: string | null;
+  ticket_number?: string | null;  // Made optional to match Supabase data
+  approved_at: string | null;
+  approved_by: string | null;
+  collector_id: string;
+  member_id: string;
+  member_number: string;
+  notes: string | null;
+  payment_method: "bank_transfer" | "cash";
   members?: {
     full_name: string;
     member_number: string;
