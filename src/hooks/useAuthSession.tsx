@@ -36,26 +36,8 @@ export function useAuthSession() {
       await new Promise(resolve => setTimeout(resolve, 100));
       
       // Force a clean page reload to clear any remaining state
-      try {
-        // Check if login page exists before redirect
-        const response = await fetch('/login');
-        if (response.ok) {
-          // Validate origin before redirect
-          const currentOrigin = window.location.origin;
-          if (currentOrigin && currentOrigin !== 'null') {
-            window.location.replace('/login');
-          } else {
-            console.error('Invalid origin, forcing reload');
-            window.location.reload();
-          }
-        } else {
-          console.error('Login page not found, forcing reload');
-          window.location.reload();
-        }
-      } catch (error) {
-        console.error('Redirect failed, forcing reload:', error);
-        window.location.reload();
-      }
+      window.location.href = '/login';
+      
     } catch (error: any) {
       console.error('Error during sign out:', error);
       let description = error.message;
@@ -77,12 +59,14 @@ export function useAuthSession() {
     
     if (error.message.includes('refresh_token_not_found') || 
         error.message.includes('invalid refresh token')) {
+      console.log('Token refresh failed, signing out...');
+      await handleSignOut();
+      
       toast({
         title: "Session Expired",
         description: "Please sign in again",
         variant: "destructive",
       });
-      await handleSignOut();
     } else {
       toast({
         title: "Authentication Error",
@@ -103,12 +87,8 @@ export function useAuthSession() {
         console.log('Fetching current session...');
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
-        console.log('Session fetch result:', {
-          session: currentSession ? 'exists' : 'null',
-          error: error ? error.message : 'none'
-        });
-        
         if (error) {
+          console.error('Session fetch error:', error);
           await handleAuthError(error);
           return;
         }
@@ -117,6 +97,11 @@ export function useAuthSession() {
           setSession(currentSession);
           if (currentSession?.user) {
             console.log('Session initialized for user:', currentSession.user.id);
+          } else {
+            console.log('No active session found');
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login';
+            }
           }
         }
       } catch (error: any) {
@@ -132,48 +117,18 @@ export function useAuthSession() {
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      if (!mounted) {
-        console.log('Auth state change ignored - component unmounted');
-        return;
-      }
+      if (!mounted) return;
 
       console.log('Auth state changed:', {
         event,
         hasSession: !!currentSession,
-        userId: currentSession?.user?.id,
-        accessToken: currentSession?.access_token ? 'exists' : 'none',
-        refreshToken: currentSession?.refresh_token ? 'exists' : 'none'
+        userId: currentSession?.user?.id
       });
       
-      if (event === 'SIGNED_OUT') {
-        console.log('User signed out');
-        // Skip storage clear if this is part of login flow
-        const isLoginFlow = window.location.pathname === '/login';
-        await handleSignOut(isLoginFlow);
+      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' && !currentSession) {
+        console.log('User signed out or token refresh failed');
+        await handleSignOut();
         return;
-      } else if (event === 'TOKEN_REFRESHED') {
-        if (!currentSession) {
-          console.log('Token refresh failed - no session');
-          toast({
-            title: "Session Expired",
-            description: "Please sign in again",
-            variant: "destructive",
-          });
-          await handleSignOut();
-          return;
-        }
-        
-        // Validate tokens
-        if (!currentSession.access_token || !currentSession.refresh_token) {
-          console.log('Invalid tokens after refresh');
-          toast({
-            title: "Session Error",
-            description: "Invalid session tokens",
-            variant: "destructive",
-          });
-          await handleSignOut();
-          return;
-        }
       }
 
       if (event === 'SIGNED_IN') {

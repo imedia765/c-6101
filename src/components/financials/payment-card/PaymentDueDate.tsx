@@ -1,15 +1,17 @@
 import { format } from 'date-fns';
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface PaymentDueDateProps {
   dueDate?: string;
   color: string;
+  statusInfo?: {
+    message: string;
+    isOverdue: boolean;
+    isGracePeriod?: boolean;
+  };
 }
 
-export const PaymentDueDate = ({ dueDate, color }: PaymentDueDateProps) => {
+export const PaymentDueDate = ({ dueDate, color, statusInfo }: PaymentDueDateProps) => {
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'January 1st, 2025';
     try {
@@ -21,30 +23,25 @@ export const PaymentDueDate = ({ dueDate, color }: PaymentDueDateProps) => {
 
   return (
     <div className="mt-3">
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "w-full justify-start text-left font-medium bg-dashboard-card border-dashboard-cardBorder hover:bg-dashboard-cardHover",
-              !dueDate && "text-muted-foreground"
-            )}
-          >
-            <span className={`${color} font-semibold`}>
-              Due: {formatDate(dueDate)}
-            </span>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-dashboard-card border-dashboard-cardBorder" align="start">
-          <Calendar
-            mode="single"
-            selected={dueDate ? new Date(dueDate) : undefined}
-            disabled
-            initialFocus
-            className="bg-dashboard-card text-dashboard-text"
-          />
-        </PopoverContent>
-      </Popover>
+      <div
+        className={cn(
+          "w-full px-4 py-2 text-left font-medium bg-dashboard-card border border-dashboard-cardBorder rounded",
+          !dueDate && "text-muted-foreground",
+          statusInfo?.isOverdue && (statusInfo.isGracePeriod ? "border-yellow-500/30" : "border-rose-500/30")
+        )}
+      >
+        <span className={cn(
+          color,
+          "font-semibold",
+          statusInfo?.isOverdue && (
+            statusInfo.isGracePeriod 
+              ? "text-yellow-400" 
+              : "text-rose-400"
+          )
+        )}>
+          {statusInfo?.message || `Due: ${formatDate(dueDate)}`}
+        </span>
+      </div>
     </div>
   );
 };

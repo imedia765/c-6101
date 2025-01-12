@@ -33,7 +33,7 @@ const MembersList = ({ searchTerm, userRole }: MembersListProps) => {
 
       const { data: collectorData } = await supabase
         .from('members_collectors')
-        .select('name')
+        .select('name, phone')
         .eq('member_number', user.user_metadata.member_number)
         .single();
 

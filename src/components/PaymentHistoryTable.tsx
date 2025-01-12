@@ -86,7 +86,7 @@ const PaymentHistoryTable = () => {
 
         console.log('Found collector:', collectorData);
 
-        // Then get all pending payments for this collector
+        // Then get all pending payments for this collector with member information
         const { data: paymentsData, error: paymentsError } = await supabase
           .from('payment_requests')
           .select(`
@@ -118,11 +118,17 @@ const PaymentHistoryTable = () => {
         })) || [];
       }
       
-      // For regular members, fetch their own payments
+      // For regular members, fetch their own payments with member information
       console.log('Fetching member payments for:', memberNumber);
       const { data, error: paymentsError } = await supabase
         .from('payment_requests')
-        .select('*')
+        .select(`
+          *,
+          members!payment_requests_member_id_fkey (
+            full_name,
+            member_number
+          )
+        `)
         .eq('member_number', memberNumber)
         .order('created_at', { ascending: false });
 
@@ -132,13 +138,15 @@ const PaymentHistoryTable = () => {
       }
 
       console.log('Member payments:', data);
-      return data.map(payment => ({
+      return data?.map(payment => ({
         id: payment.id,
         date: payment.created_at,
         type: payment.payment_type,
         amount: payment.amount,
-        status: payment.status
-      }));
+        status: payment.status,
+        member_name: payment.members?.full_name,
+        member_number: payment.members?.member_number
+      })) || [];
     },
     retry: 1,
   });

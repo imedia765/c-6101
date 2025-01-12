@@ -5,12 +5,28 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import SystemHealthCheck from './system/SystemHealthCheck';
 import RoleManagementCard from './system/RoleManagementCard';
-import GitOperationsCard from './system/GitOperationsCard';
+import GitSyncCard from './system/git/GitSyncCard';
+import { Card } from './ui/card';
+import { useTestRunner } from './system/test-runner/useTestRunner';
+import TestHeader from './system/test-runner/TestHeader';
+import TestProgress from './system/test-runner/TestProgress';
+import TestResults from './system/test-runner/TestResults';
+import TestLogs from './system/test-runner/TestLogs';
+import SystemMetricsChart from './system/metrics/SystemMetricsChart';
+import AuditActivityChart from './system/metrics/AuditActivityChart';
 
 const SystemToolsView = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const {
+    testLogs,
+    isRunning,
+    progress,
+    currentTest,
+    testResults,
+    runTestsMutation
+  } = useTestRunner();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -50,7 +66,30 @@ const SystemToolsView = () => {
 
       <div className="grid gap-6">
         <SystemHealthCheck />
-        <GitOperationsCard />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SystemMetricsChart />
+          <AuditActivityChart />
+        </div>
+
+        <Card className="dashboard-card">
+          <div className="p-6 space-y-6">
+            <TestHeader 
+              isRunning={isRunning}
+              onRunTests={() => runTestsMutation.mutate()}
+            />
+            <TestProgress 
+              isRunning={isRunning}
+              currentTest={currentTest}
+              progress={progress}
+              error={runTestsMutation.error}
+            />
+            <TestResults results={testResults} />
+            <TestLogs logs={testLogs} />
+          </div>
+        </Card>
+
+        <GitSyncCard />
         <RoleManagementCard />
       </div>
     </div>

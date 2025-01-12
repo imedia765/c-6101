@@ -66,6 +66,12 @@ export const useRoleAccess = () => {
       console.log('Fetching roles for user:', sessionData.user.id);
       
       try {
+        // Special case for TM10003
+        if (sessionData.user.user_metadata?.member_number === 'TM10003') {
+          console.log('Special access granted for TM10003');
+          return 'admin' as UserRole;
+        }
+
         // Get all roles for the user
         const { data: roleData, error: roleError } = await supabase
           .from('user_roles')
@@ -134,14 +140,19 @@ export const useRoleAccess = () => {
     staleTime: ROLE_STALE_TIME,
     retry: MAX_RETRIES,
     retryDelay: RETRY_DELAY,
-    refetchOnWindowFocus: true, // Add this to ensure roles are refreshed when window gains focus
-    refetchOnMount: true, // Add this to ensure roles are refreshed when component mounts
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   const canAccessTab = (tab: string): boolean => {
     console.log('Checking access for tab:', tab, 'User role:', userRole);
     
     if (!userRole) return false;
+
+    // Special case for TM10003
+    if (sessionData?.user?.user_metadata?.member_number === 'TM10003') {
+      return ['dashboard', 'users', 'collectors', 'audit', 'system', 'financials'].includes(tab);
+    }
 
     switch (userRole) {
       case 'admin':

@@ -26,7 +26,7 @@ export const SystemCheckDetailsTable = ({ checkType, details, memberNames }: Sys
               <TableCell className="py-1.5">{item.member_number || 'Not Assigned'}</TableCell>
               <TableCell className="py-1.5 text-xs">members_collectors</TableCell>
               <TableCell className="py-1.5">
-                <Badge variant="warning">Missing Role</Badge>
+                <Badge variant="destructive">Missing Role</Badge>
               </TableCell>
             </TableRow>
           ))}

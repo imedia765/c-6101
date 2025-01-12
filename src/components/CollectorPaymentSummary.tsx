@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { Loader2, Receipt, CreditCard } from "lucide-react";
+import { formatDate } from "@/lib/dateFormat";
 
 interface PaymentSummaryProps {
   collectorName: string | null;

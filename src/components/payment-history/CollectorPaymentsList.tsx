@@ -1,8 +1,8 @@
 import { Users } from "lucide-react";
-import { format } from "date-fns";
 import { Payment } from "./types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { formatDate } from "@/lib/dateFormat";
 
 interface GroupedPayments {
   [key: string]: Payment[];
@@ -58,7 +58,7 @@ export const CollectorPaymentsList = ({ payments }: CollectorPaymentsListProps) 
                   {memberPayments.map((payment) => (
                     <TableRow key={payment.id}>
                       <TableCell className="text-dashboard-text">
-                        {format(new Date(payment.date), 'PPP')}
+                        {formatDate(payment.date)}
                       </TableCell>
                       <TableCell className="text-dashboard-text">{payment.type}</TableCell>
                       <TableCell className="text-dashboard-accent3">

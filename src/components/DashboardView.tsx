@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import MemberProfileCard from './MemberProfileCard';
-import MonthlyChart from './MonthlyChart';
+import SystemAnnouncements from './SystemAnnouncements';
 import PaymentCard from './PaymentCard';
 import PaymentHistoryTable from './PaymentHistoryTable';
 import { Users, Wallet, AlertCircle } from 'lucide-react';
@@ -109,7 +109,7 @@ const DashboardView = () => {
           emergencyCollectionDueDate={memberProfile?.emergency_collection_due_date}
         />
 
-        <MonthlyChart />
+        <SystemAnnouncements />
 
         <PaymentHistoryTable />
       </div>

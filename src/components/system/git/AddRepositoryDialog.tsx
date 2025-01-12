@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AddRepositoryDialogProps {
@@ -13,62 +12,50 @@ interface AddRepositoryDialogProps {
   onRepositoryAdded: () => void;
 }
 
-export const AddRepositoryDialog = ({ showAddRepo, setShowAddRepo, onRepositoryAdded }: AddRepositoryDialogProps) => {
+export const AddRepositoryDialog = ({ 
+  showAddRepo, 
+  setShowAddRepo, 
+  onRepositoryAdded 
+}: AddRepositoryDialogProps) => {
   const { toast } = useToast();
-  const [newRepoUrl, setNewRepoUrl] = useState('');
-  const [newRepoBranch, setNewRepoBranch] = useState('main');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const validateGitUrl = (url: string) => {
-    const gitUrlPattern = /^https:\/\/github\.com\/[\w-]+\/[\w.-]+(?:\.git)?$/;
-    return gitUrlPattern.test(url);
-  };
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
 
-  const handleAddRepository = async () => {
     try {
-      setIsSubmitting(true);
-      
-      if (!validateGitUrl(newRepoUrl)) {
-        toast({
-          title: "Invalid Repository URL",
-          description: "Please enter a valid GitHub repository URL",
-          variant: "destructive",
-        });
-        return;
-      }
+      const formData = new FormData(event.currentTarget);
+      const name = formData.get('name') as string;
+      const repoUrl = formData.get('repo_url') as string;
+      const branch = formData.get('branch') as string;
 
-      console.log('Adding new repository:', { url: newRepoUrl, branch: newRepoBranch });
+      const { error } = await supabase
+        .from('git_repositories')
+        .insert([
+          { 
+            name,
+            source_url: repoUrl,
+            branch: branch || 'main',
+            is_master: false,
+            status: 'active'
+          }
+        ]);
 
-      const { data, error } = await supabase
-        .from('git_repository_configs')
-        .insert({
-          repo_url: newRepoUrl,
-          branch: newRepoBranch
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error adding repository:', error);
-        throw error;
-      }
-
-      console.log('Repository added successfully:', data);
+      if (error) throw error;
 
       toast({
         title: "Success",
         description: "Repository added successfully",
       });
-
+      
       setShowAddRepo(false);
-      setNewRepoUrl('');
-      setNewRepoBranch('main');
       onRepositoryAdded();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding repository:', error);
       toast({
         title: "Error",
-        description: "Failed to add repository",
+        description: error.message || "Failed to add repository",
         variant: "destructive",
       });
     } finally {
@@ -78,51 +65,50 @@ export const AddRepositoryDialog = ({ showAddRepo, setShowAddRepo, onRepositoryA
 
   return (
     <Dialog open={showAddRepo} onOpenChange={setShowAddRepo}>
-      <DialogContent className="bg-dashboard-card border-dashboard-accent1/20 max-w-md">
+      <DialogContent className="bg-dashboard-card text-white">
         <DialogHeader>
-          <DialogTitle className="text-white">Add New Repository</DialogTitle>
-          <DialogDescription className="text-dashboard-text">
-            Enter the details of the repository you want to add.
+          <DialogTitle>Add New Repository</DialogTitle>
+          <DialogDescription className="text-dashboard-muted">
+            Add a new repository to sync with the master repository.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="repoUrl" className="text-dashboard-text">Repository URL</Label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Repository Name</Label>
             <Input
-              id="repoUrl"
-              value={newRepoUrl}
-              onChange={(e) => setNewRepoUrl(e.target.value)}
-              placeholder="https://github.com/username/repo"
-              className="bg-dashboard-dark border-dashboard-accent1/20 text-white"
+              id="name"
+              name="name"
+              required
+              className="bg-dashboard-card border-white/10"
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="branch" className="text-dashboard-text">Branch</Label>
+          <div className="space-y-2">
+            <Label htmlFor="repo_url">Repository URL</Label>
+            <Input
+              id="repo_url"
+              name="repo_url"
+              required
+              placeholder="https://github.com/username/repo.git"
+              className="bg-dashboard-card border-white/10"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="branch">Branch (optional)</Label>
             <Input
               id="branch"
-              value={newRepoBranch}
-              onChange={(e) => setNewRepoBranch(e.target.value)}
+              name="branch"
               placeholder="main"
-              className="bg-dashboard-dark border-dashboard-accent1/20 text-white"
+              className="bg-dashboard-card border-white/10"
             />
           </div>
-        </div>
-        <DialogFooter className="gap-2">
           <Button 
-            variant="outline" 
-            onClick={() => setShowAddRepo(false)}
-            className="bg-transparent border-dashboard-accent1/20 text-dashboard-text hover:bg-dashboard-accent1/10"
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleAddRepository}
-            disabled={isSubmitting || !newRepoUrl.trim()}
-            className="bg-dashboard-accent1 hover:bg-dashboard-accent1/80 text-white"
+            type="submit" 
+            disabled={isSubmitting}
+            className="w-full"
           >
             {isSubmitting ? 'Adding...' : 'Add Repository'}
           </Button>
-        </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

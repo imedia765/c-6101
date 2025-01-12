@@ -71,12 +71,3 @@ export const downloadCSV = (members: Member[], collectorName?: string) => {
   document.body.removeChild(a);
   window.URL.revokeObjectURL(url);
 };
-
-export const openInGoogleSheets = (members: Member[], collectorName?: string) => {
-  const content = generateCSVContent(members);
-  const blob = new Blob([content], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const sheetsUrl = `https://docs.google.com/spreadsheets/d/create?usp=sheets_home&ths=true`;
-  window.open(sheetsUrl, '_blank');
-  window.URL.revokeObjectURL(url);
-};

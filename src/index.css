@@ -33,6 +33,7 @@
   }
 }
 
+/* Common component styles */
 .glass-card {
   @apply bg-dashboard-card bg-opacity-50 backdrop-blur-lg border border-dashboard-cardBorder rounded-xl transition-all duration-300 hover:border-dashboard-cardBorderHover hover:bg-dashboard-cardHover;
 }
@@ -43,4 +44,77 @@
 
 .metric-card {
   @apply relative flex flex-col items-center justify-center p-8 dashboard-card;
+}
+
+/* Status indicators */
+.status-badge {
+  @apply px-2 py-1 rounded-full text-sm font-medium;
+}
+
+.status-badge-success {
+  @apply bg-dashboard-success/20 text-dashboard-success;
+}
+
+.status-badge-warning {
+  @apply bg-dashboard-warning/20 text-dashboard-warning;
+}
+
+.status-badge-error {
+  @apply bg-dashboard-error/20 text-dashboard-error;
+}
+
+.status-badge-info {
+  @apply bg-dashboard-info/20 text-dashboard-info;
+}
+
+/* Text styles */
+.heading-1 {
+  @apply text-3xl font-medium text-white mb-2;
+}
+
+.heading-2 {
+  @apply text-2xl font-medium text-dashboard-accent1 mb-4;
+}
+
+.heading-3 {
+  @apply text-xl font-medium text-dashboard-accent2 mb-3;
+}
+
+.text-muted {
+  @apply text-dashboard-muted text-sm;
+}
+
+/* Button variations */
+.btn-primary {
+  @apply bg-dashboard-accent1 hover:bg-dashboard-accent1/80 text-white transition-colors;
+}
+
+.btn-secondary {
+  @apply bg-dashboard-accent2 hover:bg-dashboard-accent2/80 text-white transition-colors;
+}
+
+.btn-outline {
+  @apply border border-dashboard-cardBorder hover:border-dashboard-cardBorderHover text-dashboard-text transition-colors;
+}
+
+/* Form elements */
+.form-input {
+  @apply bg-dashboard-card border border-dashboard-cardBorder rounded-md px-3 py-2 text-dashboard-text placeholder-dashboard-muted focus:border-dashboard-accent1 focus:ring-1 focus:ring-dashboard-accent1 transition-colors;
+}
+
+.form-label {
+  @apply text-dashboard-text text-sm font-medium mb-1;
+}
+
+/* Layout utilities */
+.content-section {
+  @apply space-y-6 p-6;
+}
+
+.flex-center {
+  @apply flex items-center justify-center;
+}
+
+.grid-responsive {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
 }

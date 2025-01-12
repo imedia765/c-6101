@@ -25,23 +25,35 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         dashboard: {
+          // Base colors
           dark: "#141413",
           light: "#FAFAF8",
-          accent1: "#8989DE",
-          accent2: "#61AAF2",
-          accent3: "#7EBF8E",
+          
+          // Primary accents
+          accent1: "#9B87F5", // Primary Purple
+          accent2: "#7E69AB", // Secondary Purple
+          accent3: "#7EBF8E", // Success Green
+          
+          // Text colors
           text: "#C4C3BB",
-          muted: "#828179",
+          muted: "#8E9196", // Neutral Gray
+          
+          // Card and surface colors
           card: "#1A1A19",
-          warning: "#FFD700",
-          // Adding new color variations
           cardHover: "#222221",
           cardBorder: "#2A2A29",
           cardBorderHover: "#3A3A39",
-          highlight: "#9B87F5",
+          
+          // Status colors
+          warning: "#FFD700",
           success: "#4CAF50",
           error: "#FF5252",
-          info: "#2196F3"
+          info: "#2196F3",
+          
+          // Additional UI elements
+          highlight: "#9B87F5", // Primary Purple for highlights
+          softBlue: "#D3E4FD",
+          softGreen: "#F2FCE2"
         },
         primary: {
           DEFAULT: "hsl(var(--primary))",

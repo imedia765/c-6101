@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useRoleAccess } from "@/hooks/useRoleAccess";
 import PaymentTypeSelector from "./payment/PaymentTypeSelector";
 import PaymentMethodSelector from "./payment/PaymentMethodSelector";
 import BankDetails from "./payment/BankDetails";
@@ -15,7 +16,7 @@ interface PaymentDialogProps {
   memberId: string;
   memberNumber: string;
   memberName: string;
-  collectorInfo: { name: string | null } | null;
+  collectorInfo: { name: string | null; phone: string | null } | null;
 }
 
 const PaymentDialog = ({ 
@@ -27,10 +28,11 @@ const PaymentDialog = ({
   collectorInfo 
 }: PaymentDialogProps) => {
   const { toast } = useToast();
+  const { userRole } = useRoleAccess();
   const queryClient = useQueryClient();
   const [selectedPaymentType, setSelectedPaymentType] = useState<string>('yearly');
   const [paymentAmount, setPaymentAmount] = useState<string>('40');
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank_transfer'>('cash');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank_transfer'>('bank_transfer');
 
   const handlePaymentTypeChange = (value: string) => {
     setSelectedPaymentType(value);
@@ -141,6 +143,7 @@ const PaymentDialog = ({
               placeholder="Enter amount"
               className="border-dashboard-accent1/20 bg-dashboard-dark h-12 text-lg"
               readOnly={selectedPaymentType === 'yearly'}
+              disabled={userRole === 'member'}
             />
           </div>
           
@@ -154,9 +157,11 @@ const PaymentDialog = ({
           <Button 
             className="w-full bg-dashboard-accent2 hover:bg-dashboard-accent2/80 text-white h-12 text-lg font-medium"
             onClick={handlePaymentSubmit}
-            disabled={!paymentAmount || createPaymentRequest.isPending}
+            disabled={userRole === 'member' || !paymentAmount || createPaymentRequest.isPending}
           >
-            Submit Payment Request
+            {userRole === 'member' 
+              ? `Contact ${collectorInfo?.name || 'Collector'} for Payments` 
+              : 'Submit Payment Request'}
           </Button>
         </div>
       </DialogContent>

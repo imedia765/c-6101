@@ -1,7 +1,6 @@
 import { Card } from "@/components/ui/card";
-import { format } from "date-fns";
-import { PaymentStatus } from "./financials/payment-card/PaymentStatus";
-import { PaymentDueDate } from "./financials/payment-card/PaymentDueDate";
+import { AnnualPaymentSection } from "./payment-card/AnnualPaymentSection";
+import { EmergencyPaymentSection } from "./payment-card/EmergencyPaymentSection";
 
 interface PaymentCardProps {
   annualPaymentStatus?: 'completed' | 'pending' | 'due' | 'overdue';
@@ -13,6 +12,7 @@ interface PaymentCardProps {
   lastEmergencyPaymentDate?: string;
   lastAnnualPaymentAmount?: number;
   lastEmergencyPaymentAmount?: number;
+  memberNumber?: string;
 }
 
 const PaymentCard = ({
@@ -24,89 +24,38 @@ const PaymentCard = ({
   lastAnnualPaymentDate,
   lastEmergencyPaymentDate,
   lastAnnualPaymentAmount,
-  lastEmergencyPaymentAmount
+  lastEmergencyPaymentAmount,
+  memberNumber
 }: PaymentCardProps) => {
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'January 1st, 2025';
-    try {
-      return format(new Date(dateString), 'MMMM do, yyyy');
-    } catch (e) {
-      return 'January 1st, 2025';
-    }
-  };
+  const yearlyPaymentPercentage = annualPaymentStatus === 'completed' ? 100 : 0;
+  const emergencyPaymentPercentage = emergencyCollectionStatus === 'completed' ? 100 : 0;
+  const totalYearlyAmount = 40;
+  const collectedYearlyAmount = annualPaymentStatus === 'completed' ? 40 : 0;
+  const remainingMembers = annualPaymentStatus === 'completed' ? 0 : 1;
+  const totalMembers = 1;
+  const emergencyCollectionsCompleted = emergencyCollectionStatus === 'completed' ? 1 : 0;
 
   return (
-    <Card className="dashboard-card">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Annual Payment Section */}
-        <div className="p-6 glass-card rounded-lg border border-dashboard-highlight/20 hover:border-dashboard-highlight/40 transition-colors">
-          <h3 className="text-xl font-semibold text-dashboard-highlight mb-4">Annual Payment</h3>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-3xl font-bold text-dashboard-accent1">£40</p>
-              <PaymentDueDate 
-                dueDate={annualPaymentDueDate} 
-                color="text-dashboard-highlight"
-              />
-              {lastAnnualPaymentDate && (
-                <div className="mt-3">
-                  <p className="text-sm text-dashboard-text font-medium">
-                    Last payment: {formatDate(lastAnnualPaymentDate)}
-                  </p>
-                  {lastAnnualPaymentAmount && (
-                    <p className="text-sm text-emerald-400 font-semibold">
-                      Amount: £{lastAnnualPaymentAmount}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-            <PaymentStatus status={annualPaymentStatus} />
-          </div>
-        </div>
+    <Card className="p-8 bg-dashboard-card border-dashboard-accent1/20">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <AnnualPaymentSection
+          yearlyPaymentPercentage={yearlyPaymentPercentage}
+          collectedYearlyAmount={collectedYearlyAmount}
+          totalYearlyAmount={totalYearlyAmount}
+          remainingMembers={remainingMembers}
+          lastAnnualPaymentDate={lastAnnualPaymentDate}
+          lastAnnualPaymentAmount={lastAnnualPaymentAmount}
+          annualPaymentDueDate={annualPaymentDueDate}
+        />
 
-        {/* Emergency Collection Section */}
-        <div className="p-6 glass-card rounded-lg border border-dashboard-highlight/20 hover:border-dashboard-highlight/40 transition-colors">
-          <h3 className="text-xl font-semibold text-dashboard-highlight mb-4">Emergency Collection</h3>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-3xl font-bold text-dashboard-accent2">
-                £{emergencyCollectionAmount}
-              </p>
-              <PaymentDueDate 
-                dueDate={emergencyCollectionDueDate}
-                color="text-dashboard-highlight"
-              />
-              {lastEmergencyPaymentDate && (
-                <div className="mt-3">
-                  <p className="text-sm text-dashboard-text font-medium">
-                    Last payment: {formatDate(lastEmergencyPaymentDate)}
-                  </p>
-                  {lastEmergencyPaymentAmount && (
-                    <p className="text-sm text-emerald-400 font-semibold">
-                      Amount: £{lastEmergencyPaymentAmount}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-            <PaymentStatus status={emergencyCollectionStatus} />
-          </div>
-          <div className="text-sm text-dashboard-text font-medium">
-            {emergencyCollectionStatus === 'completed' 
-              ? 'Payment completed' 
-              : (
-                <div className="space-y-1">
-                  <p>Payment {emergencyCollectionStatus}</p>
-                  <p className="text-dashboard-muted">
-                    {emergencyCollectionStatus === 'overdue'
-                      ? 'Emergency collection payment is overdue'
-                      : 'One-time emergency collection payment required'}
-                  </p>
-                </div>
-              )}
-          </div>
-        </div>
+        <EmergencyPaymentSection
+          emergencyPaymentPercentage={emergencyPaymentPercentage}
+          emergencyCollectionsCompleted={emergencyCollectionsCompleted}
+          totalMembers={totalMembers}
+          lastEmergencyPaymentDate={lastEmergencyPaymentDate}
+          lastEmergencyPaymentAmount={lastEmergencyPaymentAmount}
+          emergencyCollectionDueDate={emergencyCollectionDueDate}
+        />
       </div>
     </Card>
   );
