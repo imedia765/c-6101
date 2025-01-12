@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import CollectorPaymentSummary from './CollectorPaymentSummary';
+import CollectorMemberPayments from './members/CollectorMemberPayments';
 import PaymentDialog from './members/PaymentDialog';
 import EditProfileDialog from './members/EditProfileDialog';
 import { Member } from "@/types/member";
@@ -161,7 +162,10 @@ const MembersList = ({ searchTerm, userRole }: MembersListProps) => {
       )}
 
       {userRole === 'collector' && collectorInfo && (
-        <CollectorPaymentSummary collectorName={collectorInfo.name} />
+        <>
+          <CollectorPaymentSummary collectorName={collectorInfo.name} />
+          <CollectorMemberPayments collectorName={collectorInfo.name} />
+        </>
       )}
     </div>
   );
