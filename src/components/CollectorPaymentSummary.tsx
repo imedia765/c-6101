@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { Loader2, Receipt, CreditCard } from "lucide-react";
+import { formatDate } from "@/lib/dateFormat";
 
 interface PaymentSummaryProps {
   collectorName: string | null;
@@ -19,7 +20,7 @@ const CollectorPaymentSummary = ({ collectorName }: PaymentSummaryProps) => {
       
       const { data: members, error } = await supabase
         .from('members')
-        .select('yearly_payment_status, emergency_collection_status, yearly_payment_amount, emergency_collection_amount')
+        .select('yearly_payment_status, emergency_collection_status')
         .eq('collector', collectorName);
       
       if (error) {
@@ -32,14 +33,10 @@ const CollectorPaymentSummary = ({ collectorName }: PaymentSummaryProps) => {
         yearlyPayments: {
           completed: members?.filter(m => m.yearly_payment_status === 'completed').length || 0,
           pending: members?.filter(m => m.yearly_payment_status === 'pending').length || 0,
-          pendingAmount: members?.reduce((sum, m) => 
-            m.yearly_payment_status === 'pending' ? sum + (m.yearly_payment_amount || 40) : sum, 0) || 0,
         },
         emergencyCollections: {
           completed: members?.filter(m => m.emergency_collection_status === 'completed').length || 0,
           pending: members?.filter(m => m.emergency_collection_status === 'pending').length || 0,
-          pendingAmount: members?.reduce((sum, m) => 
-            m.emergency_collection_status === 'pending' ? sum + (m.emergency_collection_amount || 0) : sum, 0) || 0,
         }
       };
 
@@ -91,9 +88,6 @@ const CollectorPaymentSummary = ({ collectorName }: PaymentSummaryProps) => {
               <p className="text-sm text-dashboard-warning font-medium mt-1">
                 {remainingMembers} {remainingMembers === 1 ? 'member' : 'members'} remaining
               </p>
-              <p className="text-sm text-dashboard-warning font-medium">
-                £{paymentStats.yearlyPayments.pendingAmount} pending
-              </p>
             </div>
             <div className="w-16 h-16">
               <CircularProgressbar
@@ -122,9 +116,6 @@ const CollectorPaymentSummary = ({ collectorName }: PaymentSummaryProps) => {
                 {paymentStats.emergencyCollections.completed}/{paymentStats.totalMembers}
               </p>
               <p className="text-sm text-dashboard-muted">Members paid</p>
-              <p className="text-sm text-dashboard-warning font-medium">
-                £{paymentStats.emergencyCollections.pendingAmount} pending
-              </p>
             </div>
             <div className="w-16 h-16">
               <CircularProgressbar
