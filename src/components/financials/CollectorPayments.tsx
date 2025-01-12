@@ -60,6 +60,7 @@ const CollectorPayments = ({ payments }: CollectorPaymentsProps) => {
       <Table>
         <TableHeader>
           <TableRow className="border-white/10 hover:bg-white/5">
+            <TableHead className="text-dashboard-text">Ticket #</TableHead>
             <TableHead className="text-dashboard-text">Member</TableHead>
             <TableHead className="text-dashboard-text">Amount</TableHead>
             <TableHead className="text-dashboard-text">Type</TableHead>
@@ -73,6 +74,9 @@ const CollectorPayments = ({ payments }: CollectorPaymentsProps) => {
               key={payment.id}
               className="border-white/10 hover:bg-white/5"
             >
+              <TableCell className="font-mono text-dashboard-accent2">
+                {payment.ticket_number || '-'}
+              </TableCell>
               <TableCell className="text-white font-medium">
                 {payment.members?.full_name}
               </TableCell>
