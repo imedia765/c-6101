@@ -10,6 +10,19 @@ interface CollectorMemberPaymentsProps {
   collectorName: string;
 }
 
+interface PaymentRequest {
+  id: string;
+  created_at: string;
+  amount: number;
+  payment_type: string;
+  status: string;
+  ticket_number: string | null;
+  members?: {
+    full_name: string;
+    member_number: string;
+  };
+}
+
 const CollectorMemberPayments = ({ collectorName }: CollectorMemberPaymentsProps) => {
   const { data: payments, isLoading } = useQuery({
     queryKey: ['collector-member-payments', collectorName],
@@ -41,7 +54,7 @@ const CollectorMemberPayments = ({ collectorName }: CollectorMemberPaymentsProps
         throw error;
       }
 
-      return paymentRequests;
+      return paymentRequests as PaymentRequest[];
     },
     enabled: !!collectorName,
   });
