@@ -16,7 +16,7 @@ interface PaymentRequest {
   amount: number;
   payment_type: string;
   status: string;
-  ticket_number?: string | null;  // Made optional to match Supabase data
+  ticket_number?: string | null;
   approved_at: string | null;
   approved_by: string | null;
   collector_id: string;
@@ -82,6 +82,7 @@ const CollectorMemberPayments = ({ collectorName }: CollectorMemberPaymentsProps
         <Table>
           <TableHeader>
             <TableRow className="border-white/10 hover:bg-white/5">
+              <TableHead className="text-dashboard-text">Payment #</TableHead>
               <TableHead className="text-dashboard-text">Ticket #</TableHead>
               <TableHead className="text-dashboard-text">Member</TableHead>
               <TableHead className="text-dashboard-text">Amount</TableHead>
@@ -91,11 +92,14 @@ const CollectorMemberPayments = ({ collectorName }: CollectorMemberPaymentsProps
             </TableRow>
           </TableHeader>
           <TableBody>
-            {payments?.map((payment) => (
+            {payments?.map((payment, index) => (
               <TableRow 
                 key={payment.id}
                 className="border-white/10 hover:bg-white/5"
               >
+                <TableCell className="font-mono text-dashboard-accent2">
+                  #{(payments.length - index).toString().padStart(3, '0')}
+                </TableCell>
                 <TableCell className="font-mono text-dashboard-accent2">
                   {payment.ticket_number || '-'}
                 </TableCell>
