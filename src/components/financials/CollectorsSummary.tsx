@@ -60,6 +60,8 @@ const CollectorsSummary = () => {
 
     if (member.yearly_payment_status === 'completed') {
       return 'bg-green-100/10 border-green-500/20 text-green-500';
+    } else if (member.yearly_payment_status === 'pending') {
+      return 'bg-orange-100/10 border-orange-500/20 text-orange-500';
     } else if (daysUntilDue < 0) {
       return 'bg-red-100/10 border-red-500/20 text-red-500';
     } else if (daysUntilDue <= 30) {
