@@ -22,12 +22,32 @@ const MembersListView = ({ searchTerm, userRole, collectorInfo }: MembersListVie
     queryKey: ['members', searchTerm, userRole, page],
     queryFn: async () => {
       console.log('Fetching members with search term:', searchTerm);
-      const from = (page - 1) * ITEMS_PER_PAGE;
-      const to = from + ITEMS_PER_PAGE - 1;
+      
+      // First get total count
+      const countQuery = supabase
+        .from('members')
+        .select('*', { count: 'exact', head: true });
+      
+      if (searchTerm) {
+        countQuery.or(`full_name.ilike.%${searchTerm}%,member_number.ilike.%${searchTerm}%,collector.ilike.%${searchTerm}%`);
+      }
 
+      if (userRole === 'collector' && collectorInfo?.name) {
+        countQuery.eq('collector', collectorInfo.name);
+      }
+      
+      const { count } = await countQuery;
+      const totalCount = count || 0;
+      
+      // Calculate safe pagination values
+      const maxPage = Math.ceil(totalCount / ITEMS_PER_PAGE);
+      const safePage = Math.min(page, maxPage);
+      const safeOffset = (safePage - 1) * ITEMS_PER_PAGE;
+      
+      // Fetch paginated data
       let query = supabase
         .from('members')
-        .select('*', { count: 'exact' });
+        .select('*');
       
       if (searchTerm) {
         query = query.or(`full_name.ilike.%${searchTerm}%,member_number.ilike.%${searchTerm}%,collector.ilike.%${searchTerm}%`);
@@ -37,15 +57,16 @@ const MembersListView = ({ searchTerm, userRole, collectorInfo }: MembersListVie
         query = query.eq('collector', collectorInfo.name);
       }
       
-      const { data, count, error } = await query
+      const { data, error } = await query
         .order('created_at', { ascending: false })
-        .range(from, to);
+        .range(safeOffset, safeOffset + ITEMS_PER_PAGE - 1);
       
       if (error) throw error;
       
       return {
         members: data as Member[],
-        totalCount: count || 0
+        totalCount,
+        currentPage: safePage
       };
     },
   });
@@ -55,9 +76,13 @@ const MembersListView = ({ searchTerm, userRole, collectorInfo }: MembersListVie
   };
 
   const handleEditClick = (memberId: string) => {
-    // Handle edit click - implement if needed
     console.log('Edit clicked for member:', memberId);
   };
+
+  // Update page state if we had to adjust it
+  if (membersData?.currentPage && membersData.currentPage !== page) {
+    setPage(membersData.currentPage);
+  }
 
   return (
     <DashboardTabs defaultValue="members" className="w-full">
