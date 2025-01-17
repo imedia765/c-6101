@@ -8,6 +8,8 @@ import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { PaymentStatus } from '../financials/payment-card/PaymentStatus';
+import { differenceInDays } from 'date-fns';
 
 interface MemberCardProps {
   member: Member;
@@ -20,6 +22,26 @@ const MemberCard = ({ member, userRole, onPaymentClick, onEditClick }: MemberCar
   const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
   const [note, setNote] = useState(member.admin_note || '');
   const { toast } = useToast();
+
+  const getPaymentStatus = () => {
+    if (!member.yearly_payment_due_date) return 'pending';
+    
+    const dueDate = new Date(member.yearly_payment_due_date);
+    const today = new Date();
+    const daysUntilDue = differenceInDays(dueDate, today);
+
+    if (member.yearly_payment_status === 'completed') {
+      return 'completed';
+    } else if (member.yearly_payment_status === 'pending') {
+      return 'pending';
+    } else if (daysUntilDue < 0) {
+      return 'overdue';
+    } else if (daysUntilDue <= 30) {
+      return 'due';
+    }
+    
+    return 'pending';
+  };
 
   const handleSaveNote = async () => {
     try {
@@ -63,10 +85,13 @@ const MemberCard = ({ member, userRole, onPaymentClick, onEditClick }: MemberCar
             <div className="flex items-center gap-2">
               <div>
                 <h3 className="text-xl font-medium text-dashboard-accent2 mb-1">{member.full_name}</h3>
-                <p className="bg-dashboard-accent1/10 px-3 py-1 rounded-full inline-flex items-center">
-                  <span className="text-dashboard-accent1">Member #</span>
-                  <span className="text-dashboard-accent2 font-medium ml-1">{member.member_number}</span>
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="bg-dashboard-accent1/10 px-3 py-1 rounded-full inline-flex items-center">
+                    <span className="text-dashboard-accent1">Member #</span>
+                    <span className="text-dashboard-accent2 font-medium ml-1">{member.member_number}</span>
+                  </p>
+                  <PaymentStatus status={getPaymentStatus()} />
+                </div>
               </div>
               {member.admin_note && (
                 <FileText className="w-4 h-4 text-dashboard-accent3" />
