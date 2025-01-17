@@ -36,6 +36,11 @@ const CollectorsSummary = () => {
         const pendingPayments = payments?.filter(p => p.status === 'pending') || [];
         const approvedPayments = payments?.filter(p => p.status === 'approved') || [];
         
+        // Map member IDs with pending payments for quick lookup
+        const membersWithPendingPayments = new Set(
+          pendingPayments.map(p => p.member_id)
+        );
+        
         return {
           ...collector,
           members: members || [],
@@ -43,7 +48,8 @@ const CollectorsSummary = () => {
           totalApproved: approvedPayments.length,
           pendingAmount: pendingPayments.reduce((sum, p) => sum + Number(p.amount), 0),
           approvedAmount: approvedPayments.reduce((sum, p) => sum + Number(p.amount), 0),
-          payments: payments || []
+          payments: payments || [],
+          membersWithPendingPayments
         };
       }));
 
@@ -51,20 +57,27 @@ const CollectorsSummary = () => {
     }
   });
 
-  const getPaymentStatusColor = (member: any) => {
+  const getPaymentStatusColor = (member: any, membersWithPendingPayments: Set<string>) => {
     if (!member.yearly_payment_due_date) return 'bg-dashboard-card';
     
     const dueDate = new Date(member.yearly_payment_due_date);
     const today = new Date();
     const daysUntilDue = differenceInDays(dueDate, today);
 
+    // Check if member has completed their payment
     if (member.yearly_payment_status === 'completed') {
       return 'bg-green-100/10 border-green-500/20 text-green-500';
-    } else if (member.yearly_payment_status === 'pending') {
+    } 
+    // Check if member has a pending payment in the payment_requests table
+    else if (membersWithPendingPayments.has(member.id)) {
       return 'bg-orange-100/10 border-orange-500/20 text-orange-500';
-    } else if (daysUntilDue < 0) {
+    }
+    // Check if payment is overdue
+    else if (daysUntilDue < 0) {
       return 'bg-red-100/10 border-red-500/20 text-red-500';
-    } else if (daysUntilDue <= 30) {
+    }
+    // Payment is due within 30 days
+    else if (daysUntilDue <= 30) {
       return 'bg-blue-100/10 border-blue-500/20 text-blue-500';
     }
     
@@ -106,7 +119,7 @@ const CollectorsSummary = () => {
                     {collector.members.map((member: any) => (
                       <div
                         key={member.id}
-                        className={`p-4 rounded-lg border ${getPaymentStatusColor(member)}`}
+                        className={`p-4 rounded-lg border ${getPaymentStatusColor(member, collector.membersWithPendingPayments)}`}
                       >
                         <div className="flex justify-between items-center">
                           <div>
