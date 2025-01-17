@@ -8,6 +8,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import CollectorPayments from './CollectorPayments';
+import { format, differenceInDays } from 'date-fns';
 
 const CollectorsSummary = () => {
   const { data: collectorStats, isLoading } = useQuery({
@@ -21,6 +22,12 @@ const CollectorsSummary = () => {
       if (!collectors) return [];
 
       const stats = await Promise.all(collectors.map(async (collector) => {
+        // Get all members for this collector
+        const { data: members } = await supabase
+          .from('members')
+          .select('*')
+          .eq('collector', collector.name);
+
         const { data: payments } = await supabase
           .from('payment_requests')
           .select('*, members!payment_requests_member_id_fkey(full_name)')
@@ -31,6 +38,7 @@ const CollectorsSummary = () => {
         
         return {
           ...collector,
+          members: members || [],
           totalPending: pendingPayments.length,
           totalApproved: approvedPayments.length,
           pendingAmount: pendingPayments.reduce((sum, p) => sum + Number(p.amount), 0),
@@ -42,6 +50,24 @@ const CollectorsSummary = () => {
       return stats;
     }
   });
+
+  const getPaymentStatusColor = (member: any) => {
+    if (!member.yearly_payment_due_date) return 'bg-dashboard-card';
+    
+    const dueDate = new Date(member.yearly_payment_due_date);
+    const today = new Date();
+    const daysUntilDue = differenceInDays(dueDate, today);
+
+    if (member.yearly_payment_status === 'completed') {
+      return 'bg-green-100/10 border-green-500/20 text-green-500';
+    } else if (daysUntilDue < 0) {
+      return 'bg-red-100/10 border-red-500/20 text-red-500';
+    } else if (daysUntilDue <= 30) {
+      return 'bg-blue-100/10 border-blue-500/20 text-blue-500';
+    }
+    
+    return 'bg-dashboard-card border-dashboard-accent1/20';
+  };
 
   if (isLoading) return null;
 
@@ -73,7 +99,34 @@ const CollectorsSummary = () => {
                 </div>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
-                <CollectorPayments payments={collector.payments} />
+                <div className="space-y-4">
+                  <div className="grid gap-3">
+                    {collector.members.map((member: any) => (
+                      <div
+                        key={member.id}
+                        className={`p-4 rounded-lg border ${getPaymentStatusColor(member)}`}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium">{member.full_name}</p>
+                            <p className="text-sm opacity-80">Member #{member.member_number}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm">
+                              Due: {member.yearly_payment_due_date ? 
+                                format(new Date(member.yearly_payment_due_date), 'PP') : 
+                                'Not set'}
+                            </p>
+                            <p className="text-sm">
+                              Amount: £{member.yearly_payment_amount || 0}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <CollectorPayments payments={collector.payments} />
+                </div>
               </AccordionContent>
             </AccordionItem>
           ))}
