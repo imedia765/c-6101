@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Edit, FileText } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PaymentStatus } from '../financials/payment-card/PaymentStatus';
 import { differenceInDays } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
 
 interface MemberCardProps {
   member: Member;
@@ -23,24 +24,43 @@ const MemberCard = ({ member, userRole, onPaymentClick, onEditClick }: MemberCar
   const [note, setNote] = useState(member.admin_note || '');
   const { toast } = useToast();
 
+  const { data: paymentRequest } = useQuery({
+    queryKey: ['payment_request', member.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('payment_requests')
+        .select('*')
+        .eq('member_id', member.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      return data;
+    },
+  });
+
   const getPaymentStatus = () => {
-    if (!member.yearly_payment_due_date) return 'pending';
+    if (!member.yearly_payment_due_date) return null;
     
     const dueDate = new Date(member.yearly_payment_due_date);
     const today = new Date();
     const daysUntilDue = differenceInDays(dueDate, today);
 
-    if (member.yearly_payment_status === 'completed') {
+    // If there's a completed payment
+    if (paymentRequest?.status === 'approved') {
       return 'completed';
-    } else if (member.yearly_payment_status === 'pending') {
-      return 'pending';
-    } else if (daysUntilDue < 0) {
-      return 'overdue';
-    } else if (daysUntilDue <= 30) {
-      return 'due';
     }
     
-    return 'pending';
+    // If there's a pending payment in the payment_requests table
+    if (paymentRequest?.status === 'pending') {
+      return 'pending';
+    }
+    
+    // If payment is overdue
+    if (daysUntilDue < 0) {
+      return 'overdue';
+    }
+
+    return null;
   };
 
   const handleSaveNote = async () => {
@@ -67,6 +87,8 @@ const MemberCard = ({ member, userRole, onPaymentClick, onEditClick }: MemberCar
     }
   };
 
+  const status = getPaymentStatus();
+
   return (
     <AccordionItem 
       key={member.id} 
@@ -90,7 +112,7 @@ const MemberCard = ({ member, userRole, onPaymentClick, onEditClick }: MemberCar
                     <span className="text-dashboard-accent1">Member #</span>
                     <span className="text-dashboard-accent2 font-medium ml-1">{member.member_number}</span>
                   </p>
-                  <PaymentStatus status={getPaymentStatus()} />
+                  {status && <PaymentStatus status={status} />}
                 </div>
               </div>
               {member.admin_note && (
