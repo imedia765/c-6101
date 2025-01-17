@@ -27,14 +27,15 @@ const MemberCard = ({ member, userRole, onPaymentClick, onEditClick }: MemberCar
   const { data: paymentRequest } = useQuery({
     queryKey: ['payment_request', member.id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('payment_requests')
         .select('*')
         .eq('member_id', member.id)
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-      return data;
+        .limit(1);
+        
+      if (error) throw error;
+      return data?.[0] || null;
     },
   });
 
