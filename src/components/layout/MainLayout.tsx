@@ -24,7 +24,7 @@ const MainLayout = ({
     <div className="min-h-screen bg-dashboard-dark">
       <MainHeader onToggleSidebar={onSidebarToggle} />
       
-      <div className="flex pt-32">
+      <div className="flex pt-[calc(6rem+1px)] lg:pt-[calc(8rem+1px)]">
         {/* Overlay for mobile */}
         {isSidebarOpen && (
           <div 
@@ -36,7 +36,7 @@ const MainLayout = ({
         {/* Sidebar */}
         <aside 
           className={`
-            fixed lg:fixed top-32 h-[calc(100vh-8rem)] w-64
+            fixed lg:fixed top-24 lg:top-32 h-[calc(100vh-6rem)] lg:h-[calc(100vh-8rem)] w-64
             ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             transition-transform duration-300 ease-in-out z-50
           `}
@@ -51,7 +51,14 @@ const MainLayout = ({
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 p-4 lg:p-8 lg:ml-64 min-h-[calc(100vh-8rem)] overflow-auto">
+        <main className={`
+          flex-1 
+          p-3 lg:p-8 
+          ${isSidebarOpen ? 'ml-0' : 'ml-0'} lg:ml-64 
+          min-h-[calc(100vh-6rem)] lg:min-h-[calc(100vh-8rem)] 
+          overflow-auto
+          w-full
+        `}>
           <div className="max-w-screen-2xl mx-auto">
             {children}
           </div>

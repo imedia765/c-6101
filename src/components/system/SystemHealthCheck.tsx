@@ -92,6 +92,19 @@ const SystemHealthCheck = () => {
             }
           }));
           allChecks = [...allChecks, ...memberChecks];
+        } else if (check.fn === 'validate_user_roles') {
+          // Filter out warnings for users with multiple valid roles
+          const roleChecks = (data as SystemCheck[]).filter(check => {
+            if (check.check_type === 'User Role Validation') {
+              const userRoles = check.details?.user_roles || [];
+              // Only keep warnings if there are actual role conflicts or issues
+              return !(Array.isArray(userRoles) && userRoles.every(role => 
+                ['admin', 'collector', 'member'].includes(role)
+              ));
+            }
+            return true;
+          });
+          allChecks = [...allChecks, ...roleChecks];
         } else {
           allChecks = [...allChecks, ...(data as SystemCheck[])];
         }

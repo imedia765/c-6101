@@ -19,7 +19,6 @@ if (!container) throw new Error('Failed to find the root element')
 
 const root = createRoot(container)
 
-// Wrap the entire app with StrictMode and QueryClientProvider
 root.render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>

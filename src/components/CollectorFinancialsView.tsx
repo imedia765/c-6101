@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DashboardTabs, DashboardTabsContent, DashboardTabsList, DashboardTabsTrigger } from "@/components/ui/dashboard-tabs";
 import PaymentStatistics from './financials/PaymentStatistics';
 import CollectorsSummary from './financials/CollectorsSummary';
 import AllPaymentsTable from './financials/AllPaymentsTable';
 import CollectorsList from './CollectorsList';
+import MemberStatsView from './members/MemberStatsView';
 import { Card } from "@/components/ui/card";
 import { Wallet, Users, Receipt, PoundSterling } from "lucide-react";
 import TotalCount from './TotalCount';
@@ -92,7 +93,6 @@ const CollectorFinancialsView = () => {
 
   const handlePrint = () => {
     console.log('Print functionality triggered');
-    // Add print logic here if needed
   };
 
   return (
@@ -155,43 +155,41 @@ const CollectorFinancialsView = () => {
       )}
 
       <Card className="glass-card">
-        <Tabs defaultValue="overview" className="p-2 sm:p-3 md:p-4" onValueChange={setActiveTab}>
-          <TabsList className="flex flex-col sm:flex-row w-full gap-1 sm:gap-2 bg-white/5 p-1">
-            <TabsTrigger 
-              className="w-full sm:w-auto text-xs sm:text-sm px-2 py-1.5 sm:px-3 sm:py-2" 
-              value="overview"
-            >
+        <DashboardTabs defaultValue="overview" className="p-2 sm:p-3 md:p-4" onValueChange={setActiveTab}>
+          <DashboardTabsList className="grid w-full grid-cols-1 sm:grid-cols-4 gap-0">
+            <DashboardTabsTrigger value="overview">
               Payment Overview
-            </TabsTrigger>
-            <TabsTrigger 
-              className="w-full sm:w-auto text-xs sm:text-sm px-2 py-1.5 sm:px-3 sm:py-2" 
-              value="collectors"
-            >
+            </DashboardTabsTrigger>
+            <DashboardTabsTrigger value="collectors">
               Collectors Overview
-            </TabsTrigger>
-            <TabsTrigger 
-              className="w-full sm:w-auto text-xs sm:text-sm px-2 py-1.5 sm:px-3 sm:py-2" 
-              value="payments"
-            >
+            </DashboardTabsTrigger>
+            <DashboardTabsTrigger value="payments">
               All Payments
-            </TabsTrigger>
-          </TabsList>
+            </DashboardTabsTrigger>
+            <DashboardTabsTrigger value="memberstats">
+              Member Stats
+            </DashboardTabsTrigger>
+          </DashboardTabsList>
 
-          <TabsContent value="overview" className="mt-2 sm:mt-3 md:mt-4">
+          <DashboardTabsContent value="overview" className="mt-4">
             <PaymentStatistics />
-          </TabsContent>
+          </DashboardTabsContent>
 
-          <TabsContent value="collectors" className="mt-2 sm:mt-3 md:mt-4">
-            <div className="space-y-3 sm:space-y-4 md:space-y-6">
+          <DashboardTabsContent value="collectors" className="mt-4">
+            <div className="space-y-4">
               <CollectorsList />
               <CollectorsSummary />
             </div>
-          </TabsContent>
+          </DashboardTabsContent>
 
-          <TabsContent value="payments" className="mt-2 sm:mt-3 md:mt-4">
+          <DashboardTabsContent value="payments" className="mt-4">
             <AllPaymentsTable showHistory={true} />
-          </TabsContent>
-        </Tabs>
+          </DashboardTabsContent>
+
+          <DashboardTabsContent value="memberstats" className="mt-4">
+            <MemberStatsView />
+          </DashboardTabsContent>
+        </DashboardTabs>
       </Card>
     </div>
   );

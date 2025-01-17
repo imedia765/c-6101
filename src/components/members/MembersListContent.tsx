@@ -28,13 +28,13 @@ const MembersListContent = ({
 }: MembersListContentProps) => {
   return (
     <div className="space-y-4">
-      <ScrollArea className="h-[600px] w-full rounded-md">
+      <ScrollArea className="h-[calc(100vh-16rem)] w-full rounded-md">
         {isLoading ? (
           <div className="flex justify-center items-center h-32">
             <Loader2 className="h-8 w-8 animate-spin text-dashboard-accent1" />
           </div>
         ) : (
-          <Accordion type="single" collapsible className="space-y-4">
+          <Accordion type="single" collapsible className="space-y-4 px-1">
             {members.map((member) => (
               <MemberCard
                 key={member.id}
@@ -49,7 +49,7 @@ const MembersListContent = ({
       </ScrollArea>
       
       {!isLoading && members.length > 0 && totalPages > 1 && (
-        <div className="py-4">
+        <div className="py-4 overflow-x-auto">
           <PaginationControls
             currentPage={currentPage}
             totalPages={totalPages}

@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody } from "@/components/ui/table";
-import { AlertCircle, ChevronDown, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { PaymentTableHeader } from "../payments-table/PaymentTableHeader";
@@ -26,6 +26,8 @@ const AllPaymentsTable = ({ showHistory = false }: AllPaymentsTableProps) => {
   const { data: paymentsData, isLoading, error } = useQuery({
     queryKey: ['payment-requests'],
     queryFn: async () => {
+      console.log('Fetching payment requests...');
+      
       const { data, error, count } = await supabase
         .from('payment_requests')
         .select(`
@@ -36,31 +38,39 @@ const AllPaymentsTable = ({ showHistory = false }: AllPaymentsTableProps) => {
             phone,
             email
           ),
-          collectors:members_collectors(
+          collector:members_collectors!payment_requests_collector_id_fkey(
             name,
             phone,
             email
           )
-        `, { count: 'exact' })
-        .order('created_at', { ascending: false });
+        `, { count: 'exact' });
 
       if (error) {
         console.error('Error fetching payments:', error);
         throw error;
       }
 
-      // Group payments by collector
+      console.log('Raw payments data:', data);
+
+      // Group payments by collector name, with better error handling
       const groupedPayments = data?.reduce((acc, payment) => {
-        // Get collector name from the members_collectors relationship
-        const collectorName = payment.collectors?.[0]?.name || payment.collector_id;
-        console.log('Payment collector:', payment.collectors, 'Collector ID:', payment.collector_id);
-        
+        // Get collector name with proper null checking
+        const collectorName = payment.collector?.name || 'Unassigned';
+        console.log('Processing payment:', {
+          id: payment.id,
+          collectorId: payment.collector_id,
+          collectorData: payment.collector,
+          collectorName
+        });
+
         if (!acc[collectorName]) {
           acc[collectorName] = [];
         }
         acc[collectorName].push(payment);
         return acc;
       }, {} as Record<string, any[]>);
+
+      console.log('Grouped payments:', groupedPayments);
 
       return { groupedPayments, count };
     },
@@ -91,6 +101,32 @@ const AllPaymentsTable = ({ showHistory = false }: AllPaymentsTableProps) => {
       toast({
         title: "Error",
         description: "Failed to process the payment request.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = async (paymentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('payment_requests')
+        .delete()
+        .eq('id', paymentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Payment Deleted",
+        description: "The payment record has been deleted successfully.",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['payment-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-statistics'] });
+    } catch (error) {
+      console.error('Error deleting payment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the payment record.",
         variant: "destructive",
       });
     }
@@ -173,6 +209,7 @@ const AllPaymentsTable = ({ showHistory = false }: AllPaymentsTableProps) => {
                           payment={payment}
                           onApprove={(id) => handleApproval(id, true)}
                           onReject={(id) => handleApproval(id, false)}
+                          onDelete={handleDelete}
                         />
                       ))}
                     </TableBody>

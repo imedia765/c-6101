@@ -2,10 +2,18 @@ import { Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import MemberSearch from '@/components/MemberSearch';
 import RoleManagementList from './roles/RoleManagementList';
+import CollectorRolesList from '@/components/CollectorRolesList';
 import { useState } from 'react';
+import { DebugConsole } from '@/components/logs/DebugConsole';
 
 const RoleManagementCard = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+
+  // Function to update debug logs
+  const updateDebugLogs = (logs: string[]) => {
+    setDebugLogs(logs);
+  };
 
   return (
     <Card className="bg-dashboard-card border-white/10">
@@ -25,7 +33,12 @@ const RoleManagementCard = () => {
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
         />
-        <RoleManagementList searchTerm={searchTerm} />
+        <CollectorRolesList />
+        <RoleManagementList 
+          searchTerm={searchTerm} 
+          onDebugLog={updateDebugLogs}
+        />
+        <DebugConsole logs={debugLogs} />
       </CardContent>
     </Card>
   );

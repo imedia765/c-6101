@@ -8,6 +8,7 @@ interface PaymentDueDateProps {
     message: string;
     isOverdue: boolean;
     isGracePeriod?: boolean;
+    isPaid?: boolean;
   };
 }
 
@@ -21,25 +22,47 @@ export const PaymentDueDate = ({ dueDate, color, statusInfo }: PaymentDueDatePro
     }
   };
 
+  const getStatusColor = () => {
+    if (statusInfo?.isPaid) {
+      return "text-dashboard-accent3"; // Green for paid
+    }
+    if (statusInfo?.isOverdue) {
+      return "text-rose-400"; // Red for overdue
+    }
+    if (dueDate && new Date(dueDate).getTime() - new Date().getTime() <= 30 * 24 * 60 * 60 * 1000) {
+      return "text-dashboard-accent1"; // Blue for approaching due date
+    }
+    return color;
+  };
+
+  const getStatusMessage = () => {
+    if (statusInfo?.isPaid) {
+      return "Paid ✓";
+    }
+    if (statusInfo?.isOverdue) {
+      return "Payment Overdue!";
+    }
+    if (dueDate && new Date(dueDate).getTime() - new Date().getTime() <= 30 * 24 * 60 * 60 * 1000) {
+      return `Due Soon: ${formatDate(dueDate)}`;
+    }
+    return `Due: ${formatDate(dueDate)}`;
+  };
+
   return (
     <div className="mt-3">
       <div
         className={cn(
           "w-full px-4 py-2 text-left font-medium bg-dashboard-card border border-dashboard-cardBorder rounded",
           !dueDate && "text-muted-foreground",
-          statusInfo?.isOverdue && (statusInfo.isGracePeriod ? "border-yellow-500/30" : "border-rose-500/30")
+          statusInfo?.isOverdue && (statusInfo.isGracePeriod ? "border-yellow-500/30" : "border-rose-500/30"),
+          statusInfo?.isPaid && "border-dashboard-accent3/30"
         )}
       >
         <span className={cn(
-          color,
           "font-semibold",
-          statusInfo?.isOverdue && (
-            statusInfo.isGracePeriod 
-              ? "text-yellow-400" 
-              : "text-rose-400"
-          )
+          getStatusColor()
         )}>
-          {statusInfo?.message || `Due: ${formatDate(dueDate)}`}
+          {statusInfo?.message || getStatusMessage()}
         </span>
       </div>
     </div>

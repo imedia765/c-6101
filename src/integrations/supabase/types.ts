@@ -90,6 +90,42 @@ export type Database = {
         }
         Relationships: []
       }
+      documentation: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          file_path: string
+          id: string
+          is_current: boolean | null
+          metadata: Json | null
+          title: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          file_path: string
+          id?: string
+          is_current?: boolean | null
+          metadata?: Json | null
+          title: string
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          file_path?: string
+          id?: string
+          is_current?: boolean | null
+          metadata?: Json | null
+          title?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
       family_members: {
         Row: {
           created_at: string
@@ -430,6 +466,7 @@ export type Database = {
           member_number: string
           notes: string | null
           payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_number: string | null
           payment_type: string
           status: string | null
         }
@@ -444,6 +481,7 @@ export type Database = {
           member_number: string
           notes?: string | null
           payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_number?: string | null
           payment_type: string
           status?: string | null
         }
@@ -458,6 +496,7 @@ export type Database = {
           member_number?: string
           notes?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
+          payment_number?: string | null
           payment_type?: string
           status?: string | null
         }
@@ -484,6 +523,80 @@ export type Database = {
             referencedColumns: ["member_number"]
           },
         ]
+      }
+      role_history: {
+        Row: {
+          change_type: string | null
+          changed_by_user_id: string | null
+          created_at: string
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          role_id: string | null
+        }
+        Insert: {
+          change_type?: string | null
+          changed_by_user_id?: string | null
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          role_id?: string | null
+        }
+        Update: {
+          change_type?: string | null
+          changed_by_user_id?: string | null
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          role_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_history_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "user_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_announcements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          message: string
+          priority: number | null
+          severity: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message: string
+          priority?: number | null
+          severity?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message?: string
+          priority?: number | null
+          severity?: string | null
+          title?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -630,6 +743,10 @@ export type Database = {
       generate_full_backup: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      generate_payment_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_audit_activity_summary: {
         Args: Record<PropertyKey, never>

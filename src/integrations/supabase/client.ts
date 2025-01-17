@@ -8,4 +8,35 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const handleSupabaseError = (error: any) => {
+  console.error('Supabase error:', error);
+  
+  if (error.message === 'Failed to fetch') {
+    return new Error('Unable to connect to the server. Please check your internet connection and try again.');
+  }
+  
+  if (error.message?.includes('Invalid API key')) {
+    console.error('API Key error:', { 
+      url: SUPABASE_URL,
+      keyLength: SUPABASE_PUBLISHABLE_KEY.length,
+      error 
+    });
+    return new Error('Authentication error. Please check API configuration.');
+  }
+  
+  return new Error(error.message || 'An error occurred with the database operation');
+};
+
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    storageKey: 'supabase.auth.token',
+  },
+  global: {
+    headers: {
+      'x-application-name': 'lovable-dashboard',
+    }
+  }
+});

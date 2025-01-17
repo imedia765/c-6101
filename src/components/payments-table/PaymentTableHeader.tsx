@@ -5,8 +5,9 @@ export const PaymentTableHeader = () => {
     <TableHeader>
       <TableRow className="border-white/10 hover:bg-white/5">
         <TableHead className="text-dashboard-text">Date</TableHead>
-        <TableHead className="text-dashboard-text">Member</TableHead>
-        <TableHead className="text-dashboard-text">Member Number</TableHead>
+        <TableHead className="text-dashboard-text">Payment #</TableHead>
+        <TableHead className="text-dashboard-text">Member Name</TableHead>
+        <TableHead className="text-dashboard-text">Member #</TableHead>
         <TableHead className="text-dashboard-text">Contact</TableHead>
         <TableHead className="text-dashboard-text">Collector</TableHead>
         <TableHead className="text-dashboard-text">Collector Contact</TableHead>

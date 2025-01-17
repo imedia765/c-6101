@@ -69,7 +69,7 @@ const EditProfileDialog = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       full_name: member.full_name || "",
-      date_of_birth: member.date_of_birth ? formatDate(member.date_of_birth) : "",
+      date_of_birth: member.date_of_birth || "",
       email: member.email || "",
       phone: member.phone || "",
       address: member.address || "",
@@ -163,7 +163,12 @@ const EditProfileDialog = ({
                   <FormItem>
                     <FormLabel className="text-dashboard-text">Date of Birth</FormLabel>
                     <FormControl>
-                      <Input {...field} type="date" className="bg-dashboard-dark border-dashboard-cardBorder text-dashboard-text focus:border-dashboard-accent1" />
+                      <Input 
+                        {...field} 
+                        type="date" 
+                        value={field.value || ''}
+                        className="bg-dashboard-dark border-dashboard-cardBorder text-dashboard-text focus:border-dashboard-accent1" 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

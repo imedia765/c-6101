@@ -2,7 +2,12 @@ import { Member } from '@/types/member';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Edit } from "lucide-react";
+import { Edit, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MemberCardProps {
   member: Member;
@@ -12,6 +17,34 @@ interface MemberCardProps {
 }
 
 const MemberCard = ({ member, userRole, onPaymentClick, onEditClick }: MemberCardProps) => {
+  const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
+  const [note, setNote] = useState(member.admin_note || '');
+  const { toast } = useToast();
+
+  const handleSaveNote = async () => {
+    try {
+      const { error } = await supabase
+        .from('members')
+        .update({ admin_note: note })
+        .eq('id', member.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Note saved",
+        description: "The admin note has been updated successfully.",
+      });
+      setIsNoteDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save the note. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <AccordionItem 
       key={member.id} 
@@ -27,12 +60,17 @@ const MemberCard = ({ member, userRole, onPaymentClick, onEditClick }: MemberCar
           </Avatar>
           
           <div className="flex justify-between items-center w-full">
-            <div>
-              <h3 className="text-xl font-medium text-dashboard-accent2 mb-1">{member.full_name}</h3>
-              <p className="bg-dashboard-accent1/10 px-3 py-1 rounded-full inline-flex items-center">
-                <span className="text-dashboard-accent1">Member #</span>
-                <span className="text-dashboard-accent2 font-medium ml-1">{member.member_number}</span>
-              </p>
+            <div className="flex items-center gap-2">
+              <div>
+                <h3 className="text-xl font-medium text-dashboard-accent2 mb-1">{member.full_name}</h3>
+                <p className="bg-dashboard-accent1/10 px-3 py-1 rounded-full inline-flex items-center">
+                  <span className="text-dashboard-accent1">Member #</span>
+                  <span className="text-dashboard-accent2 font-medium ml-1">{member.member_number}</span>
+                </p>
+              </div>
+              {member.admin_note && (
+                <FileText className="w-4 h-4 text-dashboard-accent3" />
+              )}
             </div>
             <div className={`px-3 py-1 rounded-full text-sm ${
               member.status === 'active' 
@@ -98,6 +136,41 @@ const MemberCard = ({ member, userRole, onPaymentClick, onEditClick }: MemberCar
                 Edit Profile
               </Button>
             </div>
+          </div>
+        )}
+
+        {userRole === 'admin' && (
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full bg-dashboard-accent2/10 hover:bg-dashboard-accent2/20 text-dashboard-accent2 border-dashboard-accent2/20"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  {member.admin_note ? 'Edit Note' : 'Add Note'}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px] bg-dashboard-card text-dashboard-text">
+                <DialogHeader>
+                  <DialogTitle className="text-dashboard-text">Admin Note for {member.full_name}</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <Textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="Enter admin note here..."
+                    className="min-h-[100px] bg-dashboard-background text-dashboard-text"
+                  />
+                  <Button
+                    onClick={handleSaveNote}
+                    className="w-full bg-dashboard-accent2 hover:bg-dashboard-accent2/80 text-white"
+                  >
+                    Save Note
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
       </AccordionContent>

@@ -1,24 +1,26 @@
-import { Card } from "@/components/ui/card";
-import { AnnualPaymentSection } from "./payment-card/AnnualPaymentSection";
-import { EmergencyPaymentSection } from "./payment-card/EmergencyPaymentSection";
+import React from 'react';
+import { Card } from './ui/card';
+import { Progress } from './ui/progress';
+import { PaymentDueDate } from './financials/payment-card/PaymentDueDate';
+import { is_payment_overdue } from '@/lib/utils';
 
 interface PaymentCardProps {
-  annualPaymentStatus?: 'completed' | 'pending' | 'due' | 'overdue';
-  emergencyCollectionStatus?: 'completed' | 'pending' | 'due' | 'overdue';
-  emergencyCollectionAmount?: number;
+  annualPaymentStatus: 'pending' | 'completed';
+  emergencyCollectionStatus: 'pending' | 'completed';
+  emergencyCollectionAmount: number;
   annualPaymentDueDate?: string;
   emergencyCollectionDueDate?: string;
   lastAnnualPaymentDate?: string;
   lastEmergencyPaymentDate?: string;
   lastAnnualPaymentAmount?: number;
   lastEmergencyPaymentAmount?: number;
-  memberNumber?: string;
+  memberNumber: string;
 }
 
-const PaymentCard = ({
-  annualPaymentStatus = 'pending',
-  emergencyCollectionStatus = 'pending',
-  emergencyCollectionAmount = 0,
+const PaymentCard: React.FC<PaymentCardProps> = ({
+  annualPaymentStatus,
+  emergencyCollectionStatus,
+  emergencyCollectionAmount,
   annualPaymentDueDate,
   emergencyCollectionDueDate,
   lastAnnualPaymentDate,
@@ -26,35 +28,97 @@ const PaymentCard = ({
   lastAnnualPaymentAmount,
   lastEmergencyPaymentAmount,
   memberNumber
-}: PaymentCardProps) => {
-  const yearlyPaymentPercentage = annualPaymentStatus === 'completed' ? 100 : 0;
-  const emergencyPaymentPercentage = emergencyCollectionStatus === 'completed' ? 100 : 0;
-  const totalYearlyAmount = 40;
-  const collectedYearlyAmount = annualPaymentStatus === 'completed' ? 40 : 0;
-  const remainingMembers = annualPaymentStatus === 'completed' ? 0 : 1;
-  const totalMembers = 1;
-  const emergencyCollectionsCompleted = emergencyCollectionStatus === 'completed' ? 1 : 0;
+}) => {
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP'
+    }).format(amount);
+  };
+
+  const getAnnualPaymentStatusInfo = () => {
+    if (annualPaymentStatus === 'completed') {
+      return {
+        message: 'Annual Payment Completed',
+        isOverdue: false,
+        isPaid: true
+      };
+    }
+    
+    if (annualPaymentDueDate) {
+      const isOverdue = is_payment_overdue(new Date(annualPaymentDueDate));
+      return {
+        message: isOverdue ? 'Annual Payment Overdue!' : 'Annual Payment Due',
+        isOverdue,
+        isPaid: false
+      };
+    }
+    
+    return null;
+  };
+
+  const getEmergencyPaymentStatusInfo = () => {
+    if (emergencyCollectionStatus === 'completed') {
+      return {
+        message: 'Emergency Payment Completed',
+        isOverdue: false,
+        isPaid: true
+      };
+    }
+    
+    if (emergencyCollectionDueDate) {
+      const isOverdue = is_payment_overdue(new Date(emergencyCollectionDueDate));
+      return {
+        message: isOverdue ? 'Emergency Payment Overdue!' : 'Emergency Payment Due',
+        isOverdue,
+        isPaid: false
+      };
+    }
+    
+    return null;
+  };
 
   return (
-    <Card className="p-8 bg-dashboard-card border-dashboard-accent1/20">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <AnnualPaymentSection
-          yearlyPaymentPercentage={yearlyPaymentPercentage}
-          collectedYearlyAmount={collectedYearlyAmount}
-          totalYearlyAmount={totalYearlyAmount}
-          remainingMembers={remainingMembers}
-          lastAnnualPaymentDate={lastAnnualPaymentDate}
-          lastAnnualPaymentAmount={lastAnnualPaymentAmount}
-          annualPaymentDueDate={annualPaymentDueDate}
+    <Card className="p-4 space-y-4">
+      <div>
+        <h3 className="text-lg font-semibold">Annual Payment</h3>
+        <Progress 
+          value={annualPaymentStatus === 'completed' ? 100 : 0} 
+          className="mt-2"
         />
+        <p className="mt-1 text-sm">
+          Status: {annualPaymentStatus}
+        </p>
+        {lastAnnualPaymentAmount && (
+          <p className="text-sm">
+            Last Payment: {formatCurrency(lastAnnualPaymentAmount)}
+          </p>
+        )}
+        <PaymentDueDate
+          dueDate={annualPaymentDueDate}
+          color="text-dashboard-text"
+          statusInfo={getAnnualPaymentStatusInfo()}
+        />
+      </div>
 
-        <EmergencyPaymentSection
-          emergencyPaymentPercentage={emergencyPaymentPercentage}
-          emergencyCollectionsCompleted={emergencyCollectionsCompleted}
-          totalMembers={totalMembers}
-          lastEmergencyPaymentDate={lastEmergencyPaymentDate}
-          lastEmergencyPaymentAmount={lastEmergencyPaymentAmount}
-          emergencyCollectionDueDate={emergencyCollectionDueDate}
+      <div>
+        <h3 className="text-lg font-semibold">Emergency Collection</h3>
+        <Progress 
+          value={emergencyCollectionStatus === 'completed' ? 100 : 0}
+          className="mt-2"
+        />
+        <p className="mt-1 text-sm">
+          Status: {emergencyCollectionStatus}
+        </p>
+        {lastEmergencyPaymentAmount && (
+          <p className="text-sm">
+            Last Payment: {formatCurrency(lastEmergencyPaymentAmount)}
+          </p>
+        )}
+        <PaymentDueDate
+          dueDate={emergencyCollectionDueDate}
+          color="text-dashboard-text"
+          statusInfo={getEmergencyPaymentStatusInfo()}
         />
       </div>
     </Card>

@@ -12,8 +12,9 @@ export const MemberPaymentsList = ({ payments }: MemberPaymentsListProps) => {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="text-dashboard-highlight">Payment #</TableHead>
             <TableHead className="text-dashboard-highlight">Date</TableHead>
-            <TableHead className="text-dashboard-highlight">Payee</TableHead>
+            <TableHead className="text-dashboard-highlight">Member Name</TableHead>
             <TableHead className="text-dashboard-highlight">Member #</TableHead>
             <TableHead className="text-dashboard-highlight">Type</TableHead>
             <TableHead className="text-dashboard-highlight">Amount</TableHead>
@@ -23,6 +24,9 @@ export const MemberPaymentsList = ({ payments }: MemberPaymentsListProps) => {
         <TableBody>
           {payments.map((payment) => (
             <TableRow key={payment.id}>
+              <TableCell className="text-dashboard-text font-mono">
+                {payment.payment_number || payment.id.slice(0, 8)}
+              </TableCell>
               <TableCell className="text-dashboard-text">
                 {formatDate(payment.date)}
               </TableCell>

@@ -33,12 +33,12 @@ export const generateMembersPDF = (members: Member[], title: string = 'Members R
 
   // Define table columns with optimized widths for landscape mode
   const columns = [
-    { header: '#', dataKey: 'member_number', width: 15 },
+    { header: '#', dataKey: 'member_number', width: 20 },
     { header: 'Name', dataKey: 'full_name', width: 40 },
     { header: 'Contact', dataKey: 'contact', width: 40 },
-    { header: 'Address', dataKey: 'address', width: 60 },
+    { header: 'Address', dataKey: 'address', width: 50 },
     { header: 'Status', dataKey: 'status', width: 20 },
-    { header: 'Type', dataKey: 'type', width: 25 }
+    { header: 'Type', dataKey: 'type', width: 20 }
   ];
 
   // Generate tables for each collector group
@@ -60,7 +60,7 @@ export const generateMembersPDF = (members: Member[], title: string = 'Members R
     // Prepare data rows with optimized data formatting
     const rows = collectorMembers.map(member => ({
       member_number: member.member_number || 'N/A',
-      full_name: member.full_name || 'N/A',
+      full_name: `${member.full_name} (${member.member_number})`,
       contact: [
         member.email,
         member.phone

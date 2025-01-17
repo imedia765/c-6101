@@ -47,7 +47,6 @@ const PrivacyDialog = ({ open, onOpenChange }: PrivacyDialogProps) => {
             <h3 className="font-semibold text-dashboard-accent2">8. Registration Requirements</h3>
             <p>Every married man will need to ensure they are registered separately from their parents or guardian.</p>
 
-            {/* ... Additional sections ... */}
             <div className="space-y-4">
               <h3 className="font-semibold text-dashboard-accent2">Special Cases</h3>
               <p>Unmarried females are not obliged to become members as they will have their membership as part of their parents until they are married following which they will be covered under their husband's membership if he is a member.</p>
